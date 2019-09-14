@@ -1,23 +1,21 @@
 <h1 align="center">
-	<img height="90" src="https://image.flaticon.com/icons/svg/21/21226.svg" alt="php-license is a library for generating and parsing license" />
-	<br> PHP License
+	<img height="90" src="" alt="Generator is a library for generating and parsing Data with Private and Public Key" />
+	<br> Generator
 </h1>
 <p align="center">
-  <a href="https://codecov.io/gh/ziishaned/php-license">
-    <img src="https://codecov.io/gh/ziishaned/php-license/branch/master/graph/badge.svg" alt="Codecov" />
-  </a>
-  <a href="https://travis-ci.org/ziishaned/php-license">
-    <img src="https://img.shields.io/travis/ziishaned/php-license.svg?style=flat" alt="Build Status" />
-  </a>
-  <a href="https://twitter.com/home?status=PHP%20License%20by%20%40ziishaned%20http%3A//github.com/ziishaned/php-license">
+  <a href="https://codecov.io/gh/ingress-it-solutions/generator">
+  <img src="https://codecov.io/gh/ingress-it-solutions/generator/branch/master/graph/badge.svg" />
+</a>
+  
+  <a href="https://twitter.com/home?status=PHP%20License%20by%20%40ziishaned%20http%3A//github.com/ingress-it-solutions/generator">
     <img src="https://img.shields.io/badge/twitter-tweet-blue.svg?style=flat-square"/>
   </a>
   <a href="https://twitter.com/ingressit">
-    <img src="https://img.shields.io/badge/feedback-@ziishaned-blue.svg?style=flat-square" />
+    
   </a>
 </p>
 
-<p align="center"><code>generator</code> is a library for generating and parsing license.</p>
+<p align="center"><code>generator</code> is a library for generating and parsing data.</p>
 
 ## Requirements
 
