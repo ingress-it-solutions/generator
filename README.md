@@ -53,7 +53,7 @@ Use the following code to generate the license key:
 ```php
 <?php
 
-use IngressITSoltuions\Generator\Generator;
+use IngressITSolutions\Generator\Generator;
 
 $data = [
   "firstName" => "John",
@@ -80,7 +80,7 @@ Use the following code to parse the license key:
 ```php
 <?php
 
-use IngressITSoltuions\Generator\Generator;
+use IngressITSolutions\Generator\Generator;
 
 $license = 'agW4Riht6xHEfbpDaZUcTCmZVHgGgCnzXc0+nqLAMjuS6ouuGQVv/JqjAuo89tUgTu3F7Q+WProPcNm1aXdavxj3xOxTJ3e2w0NSS09sBZONxG9MzzofqvYPCnu/I1WMLgaRXiiNJcz5WtqFLFSdTgehqU5VLO+eDhfWUeZ0EJlCtCLPu19hP56/+24+/tmnh4ySLc9tV+YGLYtpmt7Gyf+h3sbMO0SJMwe+XSuuTcUsIUDg3AQUlj7c4ctwhkdYkRyyjj27U09CgpWWgU5b3sXSqZ3DFdTNaP8sIVH3Y39b7/o+Gx7WIHzngCnczK58L81LTVwnkyzSBqKUT5oq4A==';
 
