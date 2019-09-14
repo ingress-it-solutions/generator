@@ -1,8 +1,8 @@
 <?php
 
-namespace IngressITSoltuions\Generator;
+namespace IngressITSolutions\Generator;
 
-use IngressITSoltuions\Generator\Exception\BaseException;
+use IngressITSolutions\Generator\Exception\BaseException;
 
 class Generator
 {
@@ -13,7 +13,7 @@ class Generator
      * @param string $privateKey
      *
      * @return string
-     * @throws \IngressITSoltuions\Generator\Exception\BaseException
+     * @throws \IngressITSolutions\Generator\Exception\BaseException
      */
     public static function generate($data, $privateKey)
     {
@@ -41,7 +41,7 @@ class Generator
      * @param string $publicKey
      *
      * @return string
-     * @throws \IngressITSoltuions\Generator\Exception\BaseException
+     * @throws \IngressITSolutions\Generator\Exception\BaseException
      */
     public static function parse($licenseKey, $publicKey)
     {

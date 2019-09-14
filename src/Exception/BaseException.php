@@ -1,6 +1,6 @@
 <?php
 
-namespace IngressITSoltuions\Generator\Exception;
+namespace IngressITSolutions\Generator\Exception;
 
 use Exception;
 

@@ -3,8 +3,8 @@
 namespace Tests;
 
 use PHPUnit\Framework\TestCase;
-use IngressITSoltuions\Generator\Generator;
-use IngressITSoltuions\Generator\Exception\BaseException;
+use IngressITSolutions\Generator\Generator;
+use IngressITSolutions\Generator\Exception\BaseException;
 
 /**
  * Class GeneratorTest
@@ -15,10 +15,11 @@ use IngressITSoltuions\Generator\Exception\BaseException;
 class GeneratorTest extends TestCase
 {
     /**
-     * @throws \IngressITSoltuions\Generator\Exception\BaseException
+     * @throws \IngressITSolutions\Generator\Exception\BaseException
      */
     public function testCanGenerateLicenseKey()
     {
+        echo "help";
         $data       = [
             "email" => "bhavikf@gmail.com",
         ];
@@ -45,7 +46,7 @@ class GeneratorTest extends TestCase
     }
 
     /**
-     * @throws \IngressITSoltuions\Generator\Exception\BaseException
+     * @throws \IngressITSolutions\Generator\Exception\BaseException
      */
     public function testCanParseLicenseKey()
     {
