@@ -36,7 +36,15 @@
     },
     "autoload": {
         "psr-4": {
-            "IngressITSolutions\\Generator\\": "src"
+            "IngressITSolutions\\Generator\\": "src/",
+            "IngressITSolutions\\LicMan\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "IngressITSolutions\\Provider\\LicManServiceProvider"
+            ]
         }
     },
     "autoload-dev": {

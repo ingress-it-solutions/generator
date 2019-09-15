@@ -10,7 +10,7 @@
          convertWarningsToExceptions="true"
          processIsolation="false"
          stopOnFailure="false"
-         syntaxCheck="false">
+         >
   <testsuites>
     <testsuite name="Main suite">
       <directory>tests/</directory>
