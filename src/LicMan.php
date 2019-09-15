@@ -4,7 +4,9 @@ namespace IngressITSolutions\Generator;
 
 use IngressITSolutions\Generator\Exception\BaseException;
 use IngressITSolutions\Generator\Generator;
-
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 class LicMan
 {
     /**
@@ -99,10 +101,10 @@ class LicMan
                             'expireOn' => '',
                             'supportTill' => '',
                             'FailedAttempts' => '',
-                            'LCD' => '',
-                            'LRD' => '',
-                            'installationKey' => '',
-                            'installationHash' => '',
+                            'LCD' => $LCD,
+                            'LRD' => $LRD,
+                            'installationKey' => $INSTALLATION_KEY,
+                            'installationHash' => $INSTALLATION_HASH,
                             ]
                     );
                     $license = Generator::generate($newRecord, $pubKey);
@@ -364,7 +366,7 @@ class LicMan
                 }
             else //time to verify license (or use forced verification)
                 {
-                $post_info="product_id=".rawurlencode(config('lmconfig.LM_PRODUCT_ID'))."&client_email=".rawurlencode($CLIENT_EMAIL)."&license_code=".rawurlencode($LICENSE_CODE)."&root_url=".rawurlencode($ROOT_URL)."&installation_hash=".rawurlencode($INSTALLATION_HASH)."&license_signature=".rawurlencode(aplGenerateScriptSignature($ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE));
+                $post_info="product_id=".rawurlencode(config('lmconfig.LM_PRODUCT_ID'))."&client_email=".rawurlencode($CLIENT_EMAIL)."&license_code=".rawurlencode($LICENSE_CODE)."&root_url=".rawurlencode($ROOT_URL)."&installation_hash=".rawurlencode($INSTALLATION_HASH)."&license_signature=".rawurlencode($this->generateScriptSignature($ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE));
 
                 $content_array=$this->customPost(config('lmconfig.LM_ROOT_URL')."/apl_callbacks/license_verify.php", $post_info, $ROOT_URL);
                 $notifications_array=$this->parseServerNotifications($content_array, $ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE); //process response from Auto PHP Licenser server
@@ -459,7 +461,7 @@ class LicMan
             $error_detected=1;
             }
 
-        if (filter_var(aplGetCurrentUrl(), FILTER_VALIDATE_URL) && stristr(aplGetRootUrl(aplGetCurrentUrl(), 1, 1, 0, 1), aplGetRootUrl("$ROOT_URL/", 1, 1, 0, 1))===false) //script is opened via browser (current_url set), but current_url is different from value in database
+        if (filter_var($this->getCurrentUrl(), FILTER_VALIDATE_URL) && stristr($this->getRootUrl($this->getCurrentUrl(), 1, 1, 0, 1), $this->getRootUrl("$ROOT_URL/", 1, 1, 0, 1))===false) //script is opened via browser (current_url set), but current_url is different from value in database
             {
             $error_detected=1;
             }
@@ -520,6 +522,61 @@ class LicMan
 
 
 
+
+    //return root url from long url (http://www.domain.com/path/file.php?aa=xx becomes http://www.domain.com/path/), remove scheme, www. and last slash if needed
+    public static function getRootUrl($url, $remove_scheme, $remove_www, $remove_path, $remove_last_slash)
+    {
+    if (filter_var($url, FILTER_VALIDATE_URL))
+        {
+        $url_array=parse_url($url); //parse URL into arrays like $url_array['scheme'], $url_array['host'], etc
+
+        $url=str_ireplace($url_array['scheme']."://", "", $url); //make URL without scheme, so no :// is included when searching for first or last /
+
+        if ($remove_path==1) //remove everything after FIRST / in URL, so it becomes "real" root URL
+            {
+            $first_slash_position=stripos($url, "/"); //find FIRST slash - the end of root URL
+            if ($first_slash_position>0) //cut URL up to FIRST slash
+                {
+                $url=substr($url, 0, $first_slash_position+1);
+                }
+            }
+        else //remove everything after LAST / in URL, so it becomes "normal" root URL
+            {
+            $last_slash_position=strripos($url, "/"); //find LAST slash - the end of root URL
+            if ($last_slash_position>0) //cut URL up to LAST slash
+                {
+                $url=substr($url, 0, $last_slash_position+1);
+                }
+            }
+
+        if ($remove_scheme!=1) //scheme was already removed, add it again
+            {
+            $url=$url_array['scheme']."://".$url;
+            }
+
+        if ($remove_www==1) //remove www.
+            {
+            $url=str_ireplace("www.", "", $url);
+            }
+
+        if ($remove_last_slash==1) //remove / from the end of URL if it exists
+            {
+            while (substr($url, -1)=="/") //use cycle in case URL already contained multiple // at the end
+                {
+                $url=substr($url, 0, -1);
+                }
+            }
+        }
+
+    return trim($url);
+    }
+
+
+
+
+
+
+
     //delete user data
     public static function deleteData($MYSQLI_LINK=null)
     {
@@ -544,6 +601,43 @@ class LicMan
 
     exit(); //abort further execution
     }
+
+
+
+
+
+    //get current page url and remove last slash if needed
+    public static function getCurrentUrl($remove_last_slash=null)
+    {
+    $current_url=null;
+
+    if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS']!=="off") {$protocol="https";} else {$protocol="http";}
+    if (isset($_SERVER['HTTP_HOST'])) {$host=$_SERVER['HTTP_HOST'];} else {$host=null;}
+    if (isset($_SERVER['SCRIPT_NAME'])) {$script=$_SERVER['SCRIPT_NAME'];} else {$script=null;}
+    if (isset($_SERVER['QUERY_STRING'])) {$params=$_SERVER['QUERY_STRING'];} else {$params=null;}
+
+    if (!empty($protocol) && !empty($host) && !empty($script)) //basic checks ok
+        {
+        $current_url=$protocol.'://'.$host.$script;
+
+        if (!empty($params))
+            {
+            $current_url.='?'.$params;
+            }
+
+        if ($remove_last_slash==1) //remove / from the end of URL if it exists
+            {
+            while (substr($current_url, -1)=="/") //use cycle in case URL already contained multiple // at the end
+                {
+                $current_url=substr($current_url, 0, -1);
+                }
+            }
+        }
+
+    return $current_url;
+    }
+
+
 
 
     //verify date and/or time according to provided format (such as Y-m-d, Y-m-d H:i, H:i, and so on)
