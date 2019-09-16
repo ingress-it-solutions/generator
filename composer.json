@@ -42,7 +42,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "IngressITSolutions\\Provider\\LicManServiceProvider"
+                "IngressITSolutions\\Generator\\LicManServiceProvider"
             ]
         }
     },
