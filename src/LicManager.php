@@ -4,7 +4,7 @@ namespace IngressITSolutions\Generator;
 
 use IngressITSolutions\Generator\Exception\BaseException;
 
-class Generator
+class LicManager
 {
 
 

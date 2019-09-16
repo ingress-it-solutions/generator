@@ -36,8 +36,7 @@
     },
     "autoload": {
         "psr-4": {
-            "IngressITSolutions\\Generator\\": "src/",
-            "IngressITSolutions\\LicMan\\": "src/"
+            "IngressITSolutions\\Generator\\": "src/"
         }
     },
     "extra": {

