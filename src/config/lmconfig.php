@@ -9,7 +9,7 @@ return [
     | and be different for each application you want to protect. Cannot be modified after installing script.
     |
     */
-    'PRODUCT_KEY' => env('PRODUCT_KEY', ''),
+    'LM_PRODUCT_KEY' => env('PRODUCT_KEY', ''),
     /*
     |--------------------------------------------------------------------------
     | LM_ROOT_URL

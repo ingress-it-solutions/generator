@@ -7,6 +7,7 @@ use IngressITSolutions\Generator\Generator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Carbon\Carbon;
 class LicMan
 {
     /**
@@ -70,34 +71,38 @@ class LicMan
 
 
     //install license
-    public static function installLicense($ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE, $MYSQLI_LINK=null) {
+    public static function installLicense($ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE) {
         $notifications_array= array();
         $apl_core_notifications= $this->checkSettings(); //check core settings
         if (empty($apl_core_notifications)) { //only continue if script is properly configured
-            if ($this->getLicenseData($MYSQLI_LINK) == 1) { //license already installed
+            if ($this->getLicenseData() == 1) { //license already installed
                 $notifications_array['notification_case']="notification_already_installed";
                 $notifications_array['notification_text']=config('lmconfig.LM_NOTIFICATION_SCRIPT_ALREADY_INSTALLED');
             } else { //license not yet installed, do it now
                 $INSTALLATION_HASH = hash("sha256", $ROOT_URL.$CLIENT_EMAIL.$LICENSE_CODE); //generate hash
+                $licFile  = File::get(Storage::disk('local')->get('license.lic'));
 
-                $licFile  = File::get(Storage::disk('local')->get('esnecil.lic'));
-                $pubKey = File::get(Storage::disk('local')->get('public.txt'));
-                $parsedData  = Generator::parse($licFile, $pubKey);
+                $parsedData  = Generator::parse($licFile, config('lmconfig.LM_PRODUCT_KEY'));
+
                 $post_info="product_id=".rawurlencode(config('lmconfig.LM_PRODUCT_ID'))."&client_email=".rawurlencode($CLIENT_EMAIL)."&license_code=".rawurlencode($LICENSE_CODE)."&root_url=".rawurlencode($ROOT_URL)."&installation_hash=".rawurlencode($INSTALLATION_HASH)."&license_signature=".rawurlencode($this->generateScriptSignature($ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE));
-
-                $content_array=$this->customPost(config('lmconfig.LM_ROOT_URL')."/apl_callbacks/license_install.php", $post_info, $ROOT_URL);
+                $content_array=$this->customPost(config('lmconfig.LM_ROOT_URL')."/licman/callbacks/license_install", $post_info, $ROOT_URL);
                 $notifications_array=$this->parseServerNotifications($content_array, $ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE); //process response from Auto PHP Licenser server
+                
+                
+                
                 if ($notifications_array['notification_case']=="notification_license_ok") { //everything OK
                 
-                    $INSTALLATION_KEY=$this->customEncrypt(password_hash(date("Y-m-d"), PASSWORD_DEFAULT), config('lmconfig.PRODUCT_KEY').$ROOT_URL); //generate $INSTALLATION_KEY first because it will be used as salt to encrypt LCD and LRD!!!
-                    $LCD=$this->customEncrypt(date("Y-m-d", strtotime("-".config('lmconfig.LM_DAYS')." days")), config('lmconfig.PRODUCT_KEY').$INSTALLATION_KEY); //license will need to be verified right after installation
-                    $LRD=$this->customEncrypt(date("Y-m-d"), config('lmconfig.PRODUCT_KEY').$INSTALLATION_KEY);
+                    $INSTALLATION_KEY=$this->customEncrypt(password_hash(date("Y-m-d"), PASSWORD_DEFAULT), config('lmconfig.LM_PRODUCT_KEY').$ROOT_URL); //generate $INSTALLATION_KEY first because it will be used as salt to encrypt LCD and LRD!!!
+                    $LCD=$this->customEncrypt(date("Y-m-d", strtotime("-".config('lmconfig.LM_DAYS')." days")), config('lmconfig.LM_PRODUCT_KEY').$INSTALLATION_KEY); //license will need to be verified right after installation
+                    $LRD=$this->customEncrypt(date("Y-m-d"), config('lmconfig.LM_PRODUCT_KEY').$INSTALLATION_KEY);
+
+                    // Bhavik TODO need to get notification data $notifications_array['notification_data'] and add the value in below table records
                     $newRecord = DB::table('lmconfig')->updateOrInsert(
                         ['id' => 1],
                         [
                             'clientEmail' => 'john@example.com',  
-                            'productKey' => config('lmconfig.PRODUCT_KEY'), 
-                            'lastCheckedOn' => '',
+                            'productKey' => config('lmconfig.LM_PRODUCT_KEY'), 
+                            'lastCheckedOn' => Carbon::now(),
                             'expireOn' => '',
                             'supportTill' => '',
                             'FailedAttempts' => '',
@@ -107,10 +112,10 @@ class LicMan
                             'installationHash' => $INSTALLATION_HASH,
                             ]
                     );
+                    $pubKey = $this->getMyKey($ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE)
                     $license = Generator::generate($newRecord, $pubKey);
-                    Storage::put('-esnecil.lic', $license);
-        
-                        
+                    Storage::put('license.lic', $license);
+         
                 } else {
                     $notifications_array['notification_case']="notification_already_installed";
                     $notifications_array['notification_text']= config('lmconfig.LM_CORE_NOTIFICATION_INVALID_LICENSE_KEY');
@@ -128,6 +133,42 @@ class LicMan
     }
 
 
+    public static function getMyKey($ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE) {
+        $userAgent="License Manager cURL"; 
+        $connect_timeout=20;
+        $server_response_array=array();
+        $formatted_headers_array=array();
+        $personalToken = config('installer.apiKey');
+
+        $ch=curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_USERAGENT, $userAgent);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $connect_timeout);
+            curl_setopt($ch, CURLOPT_TIMEOUT, $connect_timeout);
+            curl_setopt($ch, CURLOPT_REFERER, $refer);
+            curl_setopt($ch, CURLOPT_POST, 1);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $post_info);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+            curl_setopt($ch, CURLOPT_MAXREDIRS, 10);
+            curl_setopt_array($ch, array(
+                CURLOPT_HTTPHEADER => array(
+                "Authorization: {$personalToken}",
+                "User-Agent: {$userAgent}"
+            )));
+
+            $result=curl_exec($ch);
+            $curl_error=curl_error($ch); //returns a human readable error (if any)
+            curl_close($ch);
+
+            $server_response_array['headers']=$formatted_headers_array;
+            $server_response_array['error']=$curl_error;
+            $server_response_array['body']=$result;
+        
+    }
+
     //encrypt text with custom key
     public static function customEncrypt($string, $key) {
         $encrypted_string=null;
@@ -141,6 +182,7 @@ class LicMan
 
         return $encrypted_string;
     }
+
 
 
     //process response from Auto PHP Licenser server. if response received, validate it and parse notifications and data (if any). if response not received or is invalid, return a corresponding notification
@@ -259,7 +301,7 @@ class LicMan
 
 
     //return an array with license data,no matter where license is stored
-    public static function getLicenseData($MYSQLI_LINK=null) {
+    public static function getLicenseData() {
         $isInstalled = 0;
 
                 $licRecDB = DB::table('lmconfig')->first();
@@ -278,10 +320,10 @@ class LicMan
     //parse license file and make an array with license data
     public static function parseLicenseFile() {
         $licRecStorage = 0;
-        $licFile  = File::get(Storage::disk('local')->get('esnecil.lic'));
-        $pubKey = File::get(Storage::disk('local')->get('public.txt'));
+        $licFile  = File::get(Storage::disk('local')->get('license.lic'));
+        //$pubKey = File::get(Storage::disk('local')->get('public.txt'));
 
-        if (!empty($pubKey) && !empty($licFile)) {
+        if (!empty($licFile)) {
             return true;
         } else {
             return false;
@@ -359,7 +401,7 @@ class LicMan
             {
             extract($this->getLicenseData($MYSQLI_LINK)); //get license data
 
-            if ($this->getDaysBetweenDates($this->customDecrypt($LCD, config('lmconfig.PRODUCT_KEY').$INSTALLATION_KEY), date("Y-m-d"))<config('lmconfig.LM_DAYS') && $this->customDecrypt($LCD, config('lmconfig.PRODUCT_KEY').$INSTALLATION_KEY)<=date("Y-m-d") && $this->customDecrypt($LRD, config('lmconfig.PRODUCT_KEY').$INSTALLATION_KEY)<=date("Y-m-d") && $FORCE_VERIFICATION==0) //the only case when no verification is needed, return notification_license_ok case, so script can continue working
+            if ($this->getDaysBetweenDates($this->customDecrypt($LCD, config('lmconfig.LM_PRODUCT_KEY').$INSTALLATION_KEY), date("Y-m-d"))<config('lmconfig.LM_DAYS') && $this->customDecrypt($LCD, config('lmconfig.LM_PRODUCT_KEY').$INSTALLATION_KEY)<=date("Y-m-d") && $this->customDecrypt($LRD, config('lmconfig.LM_PRODUCT_KEY').$INSTALLATION_KEY)<=date("Y-m-d") && $FORCE_VERIFICATION==0) //the only case when no verification is needed, return notification_license_ok case, so script can continue working
                 {
                 $notifications_array['notification_case']="notification_license_ok";
                 $notifications_array['notification_text']=config('lmconfig.LM_NOTIFICATION_BYPASS_VERIFICATION');
@@ -394,35 +436,21 @@ class LicMan
                     }
                 else //get existing DECRYPTED $LCD value because it will need to be re-encrypted using new $INSTALLATION_KEY in case license verification didn't succeed
                     {
-                    $LCD=$this->customDecrypt($LCD, config('lmconfig.PRODUCT_KEY').$INSTALLATION_KEY);
+                    $LCD=$this->customDecrypt($LCD, config('lmconfig.LM_PRODUCT_KEY').$INSTALLATION_KEY);
                     }
 
-                $INSTALLATION_KEY=$this->customEncrypt(password_hash(date("Y-m-d"), PASSWORD_DEFAULT), config('lmconfig.PRODUCT_KEY').$ROOT_URL); //generate $INSTALLATION_KEY first because it will be used as salt to encrypt LCD and LRD!!!
-                $LCD=$this->customEncrypt($LCD, config('lmconfig.PRODUCT_KEY').$INSTALLATION_KEY); //finally encrypt $LCD value (it will contain either DECRYPTED old date, either non-encrypted today's date)
-                $LRD=$this->customEncrypt(date("Y-m-d"), config('lmconfig.PRODUCT_KEY').$INSTALLATION_KEY); //generate new $LRD value every time database needs to be updated (because if LCD is higher than LRD, cracking attempt will be detected).
+                $INSTALLATION_KEY=$this->customEncrypt(password_hash(date("Y-m-d"), PASSWORD_DEFAULT), config('lmconfig.LM_PRODUCT_KEY').$ROOT_URL); //generate $INSTALLATION_KEY first because it will be used as salt to encrypt LCD and LRD!!!
+                $LCD=$this->customEncrypt($LCD, config('lmconfig.LM_PRODUCT_KEY').$INSTALLATION_KEY); //finally encrypt $LCD value (it will contain either DECRYPTED old date, either non-encrypted today's date)
+                $LRD=$this->customEncrypt(date("Y-m-d"), config('lmconfig.LM_PRODUCT_KEY').$INSTALLATION_KEY); //generate new $LRD value every time database needs to be updated (because if LCD is higher than LRD, cracking attempt will be detected).
 
                 
-                $licFile  = File::get(Storage::disk(‘local’)->get(‘esnecil.lic’));
-                $pubKey = File::get(Storage::disk(‘local’)->get(‘public.txt’));
-                $parsedData  = Generator::parse($licFile, $pubKey);
-                $newRecord = DB::table('lmconfig')->->where('id', 1)->update(
-                    [
-                        'lastCheckedOn' => date("Y-m-d"),
-                        'expireOn' => '',
-                        'supportTill' => '',
-                        'FailedAttempts' => '',
-                        'LCD' => $LCD,
-                        'LRD' => $LRD,
-                        'installationKey' => $INSTALLATION_KEY,
-                        'installationHash' => '',
-                        ]
-                );
+                $licFile  = File::get(Storage::disk('local')->get('license.lic'));
+                $pubKey = File::get(Storage::disk('local')->get('public.txt'));
+                $parsedData = Generator::parse($licFile, $pubKey);
+                $newRecord = DB::table('lmconfig')->where('id', 1)->update(['lastCheckedOn' => date("Y-m-d"),'expireOn' => '','supportTill' => '','FailedAttempts' => '','LCD' => $LCD,'LRD' => $LRD,'installationKey' => $INSTALLATION_KEY,'installationHash' => '']);
                 $license = Generator::generate($newRecord, $pubKey);
-                Storage::put('-esnecil.lic', $license);
+                Storage::put('license.lic', $license);
     
-
-
-                    
                 }
             }
         else //license is not installed yet or corrupted
