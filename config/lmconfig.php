@@ -9,18 +9,19 @@ return [
     | and be different for each application you want to protect. Cannot be modified after installing script.
     |
     */
-    'LM_PRODUCT_KEY' => env('PRODUCT_KEY', ''),
+    'LM_PRODUCT_KEY' => env('PRODUCT_KEY', 'ZBL7F26G7PKDYJB9CW752TVG48LLMMEVMMHT4LWA4KA2UWEPVKB3X72CYYAC'),
+    'LM_API_KEY' => env('LM_API_KEY', '6RXHJ7KYDNWCFEPZR4BNEM28BJJXMDZ9DX7YDM6W'),
     /*
     |--------------------------------------------------------------------------
     | LM_ROOT_URL
     |--------------------------------------------------------------------------
     |
-    | URL of the License Manager App 
+    | URL of the License Manager App
     |
     */
 
-    'LM_ROOT_URL' => env('LM_ROOT_URL', 'http://license.ingressit.com/'),
-    
+    'LM_ROOT_URL' => env('LM_ROOT_URL', 'http://license/'),
+
     /*
     |--------------------------------------------------------------------------
     | LM_PRODUCT_ID
@@ -29,9 +30,9 @@ return [
     | Product ID from License Manager App.
     |
     */
-    'LM_PRODUCT_ID' => env('PRODUCT_ID', ''),
+    'LM_PRODUCT_ID' => env('PRODUCT_ID', 11),
 
-        
+
     /*
     |--------------------------------------------------------------------------
     | LM_DAYS
@@ -45,7 +46,7 @@ return [
     'LM_DAYS' => env('LICENSE_CHECK_TIME', 2),
 
 
-        
+
     /*
     |--------------------------------------------------------------------------
     | LM_DELETE_CRACKED
@@ -60,7 +61,7 @@ return [
     'LM_DELETE_CRACKED' => true,
 
     'LM_DELETE_CANCELLED' => false,
-        
+
     /*
     |--------------------------------------------------------------------------
     | LM_MESSAGES
