@@ -21,10 +21,12 @@ class LicManServiceProvider extends ServiceProvider
         ], 'config');
         // Migrations
 
-        $this->publishes([
+        /*$this->publishes([
             __DIR__ . '/../migrations/' => database_path('migrations')
+        ], 'migrations');*/
+        $this->publishes([
+            base_path('vendor/ingress-it-solutions/generator/migrations') => base_path('database/migrations'),
         ], 'migrations');
-
 
     }
 
