@@ -90,11 +90,9 @@ class LicMan
 
                 $post_info="product_id=".rawurlencode(config('lmconfig.LM_PRODUCT_ID'))."&client_email=".rawurlencode($CLIENT_EMAIL)."&license_code=".rawurlencode($LICENSE_CODE)."&root_url=".rawurlencode($ROOT_URL)."&installation_hash=".rawurlencode($INSTALLATION_HASH)."&license_signature=".rawurlencode($this->generateScriptSignature($ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE));
 
-                $content_array=$this->customPost(config('lmconfig.LM_ROOT_URL')."/api/license/validate", $post_info, $ROOT_URL);
-                //dd($content_array);
+                $content_array=$this->customPost(config('lmconfig.LM_ROOT_URL')."/api/license/install", $post_info, $ROOT_URL);
+
                 $notifications_array=$this->parseServerNotifications($content_array, $ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE); //process response from Auto PHP Licenser server
-
-
 
                 if ($notifications_array['notification_case']=="notification_license_ok") { //everything OK
 
@@ -115,8 +113,19 @@ class LicMan
                         'installationKey' => $INSTALLATION_KEY,
                         'installationHash' => $INSTALLATION_HASH,
                     ];
-                    $pubKey = $this->getMyKey($ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE);
-                    $license = Generator::generate($newRecord, $pubKey);
+
+
+                    ///////// Bhavik TODO need to save records in file.
+
+                    $post_info="product_id=".rawurlencode(config('lmconfig.LM_PRODUCT_ID'))."&client_email=".rawurlencode($CLIENT_EMAIL)."&license_code=".rawurlencode($LICENSE_CODE)."&root_url=".rawurlencode($ROOT_URL)."&installation_hash=".rawurlencode($INSTALLATION_HASH)."&license_signature=".rawurlencode($this->generateScriptSignature($ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE));
+
+                    $pubKey = $this->getMyKey(config('lmconfig.LM_ROOT_URL')."/api/license/key", $post_info, $ROOT_URL);
+                    $notifications_key =$this->parseServerNotifications($pubKey, $ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE);
+                    //dd();
+                    //dd($pubKey);
+                    //$pubKey = $this->getMyKey($ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE);
+                    /// Bhavik Need to find a way to store it.
+                    $license = Generator::generate($newRecord, $notifications_key['notification_data']->pubKey);
                     Storage::put('license.lic', $license);
 
                 } else {
@@ -136,39 +145,51 @@ class LicMan
     }
 
 
-    public function getMyKey($ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE) {
-        $userAgent="License Manager cURL";
+    public function getMyKey($url, $post_info=null, $refer=null) {
+        $userAgent="License Manager cURL Key Request";
         $connect_timeout=20;
         $server_response_array=array();
         $formatted_headers_array=array();
         $personalToken = config('lmconfig.LM_API_KEY');
 
-        $ch=curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_USERAGENT, $userAgent);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $connect_timeout);
-        curl_setopt($ch, CURLOPT_TIMEOUT, $connect_timeout);
-        curl_setopt($ch, CURLOPT_REFERER, $refer);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $post_info);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-        curl_setopt($ch, CURLOPT_MAXREDIRS, 10);
-        curl_setopt_array($ch, array(
-            CURLOPT_HTTPHEADER => array(
-                "Authorization: {$personalToken}",
-                "User-Agent: {$userAgent}"
-            )));
+        if (filter_var($url, FILTER_VALIDATE_URL) && !empty($post_info)) {
+            if (empty($refer) || !filter_var($refer, FILTER_VALIDATE_URL)) { //use original URL as refer when no valid refer URL provided
+                $refer=$url;
+            }
 
-        $result=curl_exec($ch);
-        $curl_error=curl_error($ch); //returns a human readable error (if any)
-        curl_close($ch);
+            $ch=curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_USERAGENT, $userAgent);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $connect_timeout);
+            curl_setopt($ch, CURLOPT_TIMEOUT, $connect_timeout);
+            curl_setopt($ch, CURLOPT_REFERER, $refer);
+            curl_setopt($ch, CURLOPT_POST, 1);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $post_info);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+            curl_setopt($ch, CURLOPT_MAXREDIRS, 10);
+            curl_setopt_array($ch, array(
+                CURLOPT_HTTPHEADER => array(
+                    "Authorization: {$personalToken}",
+                    "User-Agent: {$userAgent}"
+                )));
 
-        $server_response_array['headers']=$formatted_headers_array;
-        $server_response_array['error']=$curl_error;
-        $server_response_array['body']=$result;
+            //this function is called by curl for each header received - https://stackoverflow.com/questions/9183178/can-php-curl-retrieve-response-headers-and-body-in-a-single-request
+
+
+            $result=curl_exec($ch);
+            $curl_error=curl_error($ch); //returns a human readable error (if any)
+            curl_close($ch);
+
+            //dd($result);
+            $server_response_array['headers']=$formatted_headers_array;
+            $server_response_array['error']=$curl_error;
+            $server_response_array['body']=$result;
+        }
+
+        return $server_response_array;
 
     }
 
@@ -192,13 +213,16 @@ class LicMan
     public function parseServerNotifications($content_array, $ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE) {
         $notifications_array=array();
 
-        if (!empty($content_array)) { //response received, validate it
 
-            if (!empty($content_array['headers']['notification_server_signature']) && $this->verifyServerSignature($content_array['headers']['notification_server_signature'], $ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE)) {//response valid
-                $notifications_array['notification_case']=$content_array['headers']['notification_case'];
-                $notifications_array['notification_text']=$content_array['headers']['notification_text'];
-                if (!empty($content_array['headers']['notification_data'])) { //additional data returned
-                    $notifications_array['notification_data']=json_decode($content_array['headers']['notification_data'], true);
+
+        if (!empty($content_array)) { //response received, validate it
+            $body = json_decode($content_array['body']);
+
+            if (!empty($body->notification_server_signature) && $this->verifyServerSignature($body->notification_server_signature, $ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE)) {//response valid
+                $notifications_array['notification_case']=$body->notification_case;
+                $notifications_array['notification_text']=$body->notification_text;
+                if (!empty($body->returnVariables)) { //additional data returned
+                    $notifications_array['notification_data']=$body->returnVariables;
                 }
             } else { //response invalid
                 $notifications_array['notification_case']="notification_invalid_response";
@@ -210,6 +234,7 @@ class LicMan
             $notifications_array['notification_text']=config('lmconfig.LM_NOTIFICATION_NO_CONNECTION');
         }
 
+        //dd($notifications_array);
         return $notifications_array;
     }
 
