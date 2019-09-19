@@ -91,8 +91,9 @@ class LicMan
                 $post_info="product_id=".rawurlencode(config('lmconfig.LM_PRODUCT_ID'))."&client_email=".rawurlencode($CLIENT_EMAIL)."&license_code=".rawurlencode($LICENSE_CODE)."&root_url=".rawurlencode($ROOT_URL)."&installation_hash=".rawurlencode($INSTALLATION_HASH)."&license_signature=".rawurlencode($this->generateScriptSignature($ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE));
 
                 $content_array=$this->customPost(config('lmconfig.LM_ROOT_URL')."/api/license/install", $post_info, $ROOT_URL);
-
-                $notifications_array=$this->parseServerNotifications($content_array, $ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE); //process response from Auto PHP Licenser server
+                //dd($content_array);
+                $notifications_array = $this->parseServerNotifications($content_array, $ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE); //process response from Auto PHP Licenser server
+                //dd($notifications_array);
 
                 if ($notifications_array['notification_case']=="notification_license_ok") { //everything OK
 
@@ -115,22 +116,41 @@ class LicMan
                     ];
 
 
-                    ///////// Bhavik TODO need to save records in file.
+
 
                     $post_info="product_id=".rawurlencode(config('lmconfig.LM_PRODUCT_ID'))."&client_email=".rawurlencode($CLIENT_EMAIL)."&license_code=".rawurlencode($LICENSE_CODE)."&root_url=".rawurlencode($ROOT_URL)."&installation_hash=".rawurlencode($INSTALLATION_HASH)."&license_signature=".rawurlencode($this->generateScriptSignature($ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE));
 
                     $pubKey = $this->getMyKey(config('lmconfig.LM_ROOT_URL')."/api/license/key", $post_info, $ROOT_URL);
-                    $notifications_key =$this->parseServerNotifications($pubKey, $ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE);
-                    //dd();
+
                     //dd($pubKey);
+                    $notifications_key =$this->parseServerNotifications($pubKey, $ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE);
+
+                    //dd();
+                    dd($pubKey);
                     //$pubKey = $this->getMyKey($ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE);
                     /// Bhavik Need to find a way to store it.
-                    $license = Generator::generate($newRecord, $notifications_key['notification_data']->pubKey);
-                    Storage::put('license.lic', $license);
+                    //dd($notifications_key);
+                    //$license = Generator::generate($newRecord, $notifications_key['notification_data']->pubKey);
+                    Storage::put('public.key', $notifications_key['notification_data']->pubKey);
+                    Storage::put('license.lic', $notifications_key['notification_data']->licenseVal);
+                    dd('bhavik');
 
+                }  elseif($notifications_array['notification_case'] == 'notification_license_expired') {
+                    $notifications_array['notification_case']="notification_license_expired";
+                    $notifications_array['notification_text']=config('lmconfig.LM_CORE_NOTIFICATION_LICENSE_EXPIRED_PERIOD');
+                    $notifications_array['notification_data'] = [];
+                }  elseif($notifications_array['notification_case'] == 'notification_invalid_ip') {
+                    $notifications_array['notification_case']="notification_invalid_ip";
+                    $notifications_array['notification_text']=config('lmconfig.LM_CORE_NOTIFICATION_INVALID_DNS');
+                    $notifications_array['notification_data'] = [];
+                } elseif($notifications_array['notification_case'] == 'notification_product_not_found') {
+                    $notifications_array['notification_case']="notification_product_not_found";
+                    $notifications_array['notification_text']=config('lmconfig.LM_CORE_NOTIFICATION_INVALID_PRODUCT_ID');
+                    $notifications_array['notification_data'] = [];
                 } else {
                     $notifications_array['notification_case']="notification_already_installed";
                     $notifications_array['notification_text']= config('lmconfig.LM_CORE_NOTIFICATION_INVALID_LICENSE_KEY');
+                    $notifications_array['notification_data'] = [];
                 }
 
 
@@ -172,7 +192,7 @@ class LicMan
             curl_setopt($ch, CURLOPT_MAXREDIRS, 10);
             curl_setopt_array($ch, array(
                 CURLOPT_HTTPHEADER => array(
-                    "Authorization: {$personalToken}",
+                    "X-Authorization: {$personalToken}",
                     "User-Agent: {$userAgent}"
                 )));
 
@@ -308,7 +328,7 @@ class LicMan
             curl_setopt($ch, CURLOPT_MAXREDIRS, 10);
             curl_setopt_array($ch, array(
                 CURLOPT_HTTPHEADER => array(
-                    "Authorization: {$personalToken}",
+                    "X-Authorization: {$personalToken}",
                     "User-Agent: {$userAgent}"
                 )));
 

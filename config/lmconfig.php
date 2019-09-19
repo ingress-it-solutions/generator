@@ -9,8 +9,8 @@ return [
     | and be different for each application you want to protect. Cannot be modified after installing script.
     |
     */
-    'LM_PRODUCT_KEY' => env('PRODUCT_KEY', 'ZBL7F26G7PKDYJB9CW752TVG48LLMMEVMMHT4LWA4KA2UWEPVKB3X72CYYAC'),
-    'LM_API_KEY' => env('LM_API_KEY', '6RXHJ7KYDNWCFEPZR4BNEM28BJJXMDZ9DX7YDM6W'),
+    'LM_PRODUCT_KEY' => env('PRODUCT_KEY', '6FJHW5DA799DFG2VZ3KWMULND3TNN3TKHEK3WAXK43DP3386SRFUTR4BG27B'),
+    'LM_API_KEY' => env('LM_API_KEY', 'BVGJXM2SWCXDMPQ3F5QT8ABJMA3A8F3Y6MKKM75G'),
     /*
     |--------------------------------------------------------------------------
     | LM_ROOT_URL
@@ -20,7 +20,7 @@ return [
     |
     */
 
-    'LM_ROOT_URL' => env('LM_ROOT_URL', 'http://license/'),
+    'LM_ROOT_URL' => env('LM_ROOT_URL', 'http://licensemanager:8888'),
 
     /*
     |--------------------------------------------------------------------------
@@ -30,7 +30,7 @@ return [
     | Product ID from License Manager App.
     |
     */
-    'LM_PRODUCT_ID' => env('PRODUCT_ID', 11),
+    'LM_PRODUCT_ID' => env('PRODUCT_ID', 5),
 
 
     /*
@@ -38,8 +38,8 @@ return [
     | LM_DAYS
     |--------------------------------------------------------------------------
     |
-    | Time period (in days) between automatic license verifications. The lower the number, 
-    | the more often license will be verified, but if many end users use your script, it can cause extra load on your server. 
+    | Time period (in days) between automatic license verifications. The lower the number,
+    | the more often license will be verified, but if many end users use your script, it can cause extra load on your server.
     | Available values are between 1 and 365. Usually 7 or 14 days are the best choice.
     |
     */
@@ -52,9 +52,9 @@ return [
     | LM_DELETE_CRACKED
     |--------------------------------------------------------------------------
     |
-    | When option set to "YES", script files and MySQL data will be deleted when cracking attempt is detected. 
-    | This is very useful against users who may try cracking software; if some unauthorized changes in 
-    | core functions are detected, Auto PHP Licenser will try to delete all script files and any data in MySQL database. 
+    | When option set to "YES", script files and MySQL data will be deleted when cracking attempt is detected.
+    | This is very useful against users who may try cracking software; if some unauthorized changes in
+    | core functions are detected, Auto PHP Licenser will try to delete all script files and any data in MySQL database.
     | Use at your own risk!
     |
     */
@@ -74,6 +74,7 @@ return [
     'LM_NOTIFICATION_INVALID_RESPONSE' => 'Invalid server response.',
     'LM_NOTIFICATION_DATABASE_WRITE_ERROR' => "Can't write to database.",
     'LM_NOTIFICATION_LICENSE_FILE_WRITE_ERROR' => "Can't write to license file.",
+    'LM_CORE_NOTIFICATION_LICENSE_EXPIRED_PERIOD' => 'License is already expired',
     'LM_NOTIFICATION_LICENSE_CORRUPTED' => 'License is not installed yet or corrupted.',
     'LM_NOTIFICATION_BYPASS_VERIFICATION' => 'No need to verify.',
     'LM_NOTIFICATION_SCRIPT_ALREADY_INSTALLED' => 'Script is already installed (or database not empty).',
