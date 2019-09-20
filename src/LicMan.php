@@ -125,15 +125,10 @@ class LicMan
                     //dd($pubKey);
                     $notifications_key =$this->parseServerNotifications($pubKey, $ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE);
 
-                    //dd();
-                    dd($pubKey);
-                    //$pubKey = $this->getMyKey($ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE);
-                    /// Bhavik Need to find a way to store it.
-                    //dd($notifications_key);
-                    //$license = Generator::generate($newRecord, $notifications_key['notification_data']->pubKey);
+
                     Storage::put('public.key', $notifications_key['notification_data']->pubKey);
                     Storage::put('license.lic', $notifications_key['notification_data']->licenseVal);
-                    dd('bhavik');
+
 
                 }  elseif($notifications_array['notification_case'] == 'notification_license_expired') {
                     $notifications_array['notification_case']="notification_license_expired";
@@ -147,7 +142,11 @@ class LicMan
                     $notifications_array['notification_case']="notification_product_not_found";
                     $notifications_array['notification_text']=config('lmconfig.LM_CORE_NOTIFICATION_INVALID_PRODUCT_ID');
                     $notifications_array['notification_data'] = [];
-                } else {
+                } elseif($notifications_array['notification_case'] == 'notification_client_not_found'){
+                    $notifications_array['notification_case']="notification_client_not_found";
+                    $notifications_array['notification_text']=config('lmconfig.LM_CORE_NOTIFICATION_CLIENT_NOT_FOUND');
+                    $notifications_array['notification_data'] = [];
+                } else{
                     $notifications_array['notification_case']="notification_already_installed";
                     $notifications_array['notification_text']= config('lmconfig.LM_CORE_NOTIFICATION_INVALID_LICENSE_KEY');
                     $notifications_array['notification_data'] = [];
@@ -447,84 +446,205 @@ class LicMan
     }
 
 
+    public function checkDate($data){
 
-    public function verifyLicense($MYSQLI_LINK=null, $FORCE_VERIFICATION=0)
+        if($data['lastCheckedDate']){
+            if(Carbon::now() > Carbon::parse($data['lastCheckedDate'])->addDays(config('lmconfig.LM_DAYS')) && Carbon::parse($data['lastCheckedDate'])->addDays(config('lmconfig.LM_DAYS')) < 8){
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public function verifyLicense($rootURL, $forceCheck = false)
     {
         $notifications_array=array();
         $update_lrd_value=0;
         $update_lcd_value=0;
         $updated_records=0;
-        $apl_core_notifications=$this->checkSettings(); //check core settings
+        $licman_core_notifications=$this->checkSettings(); //check core settings
 
-        if (empty($apl_core_notifications)) //only continue if script is properly configured
+        if (empty($licman_core_notifications)) //only continue if script is properly configured
         {
-            if ($this->checkData($MYSQLI_LINK)) //only continue if license is installed and properly configured
-            {
-                extract($this->getLicenseData($MYSQLI_LINK)); //get license data
 
-                if ($this->getDaysBetweenDates($this->customDecrypt($LCD, config('lmconfig.LM_PRODUCT_KEY').$INSTALLATION_KEY), date("Y-m-d"))<config('lmconfig.LM_DAYS') && $this->customDecrypt($LCD, config('lmconfig.LM_PRODUCT_KEY').$INSTALLATION_KEY)<=date("Y-m-d") && $this->customDecrypt($LRD, config('lmconfig.LM_PRODUCT_KEY').$INSTALLATION_KEY)<=date("Y-m-d") && $FORCE_VERIFICATION==0) //the only case when no verification is needed, return notification_license_ok case, so script can continue working
-                {
-                    $notifications_array['notification_case']="notification_license_ok";
-                    $notifications_array['notification_text']=config('lmconfig.LM_NOTIFICATION_BYPASS_VERIFICATION');
-                }
-                else //time to verify license (or use forced verification)
-                {
-                    $post_info="product_id=".rawurlencode(config('lmconfig.LM_PRODUCT_ID'))."&client_email=".rawurlencode($CLIENT_EMAIL)."&license_code=".rawurlencode($LICENSE_CODE)."&root_url=".rawurlencode($ROOT_URL)."&installation_hash=".rawurlencode($INSTALLATION_HASH)."&license_signature=".rawurlencode($this->generateScriptSignature($ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE));
+            $public = File::get(storage_path('app/public.key'));
+            //dd($public);
+            $license = File::get(storage_path('app/license.lic'));
+            // dd($license);
 
-                    $content_array=$this->customPost(config('lmconfig.LM_ROOT_URL')."/apl_callbacks/license_verify.php", $post_info, $ROOT_URL);
-                    $notifications_array=$this->parseServerNotifications($content_array, $ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE); //process response from Auto PHP Licenser server
-                    if ($notifications_array['notification_case']=="notification_license_ok") //everything OK
-                    {
-                        $update_lcd_value=1;
+            $data = Generator::parse($license, $public);
+
+
+            if (!empty($data)) {
+
+                if ($this->checkDate($data) || $forceCheck) {
+                    //Need to check license
+
+                    if ($data['productKey'] == config('lmconfig.LM_PRODUCT_KEY')) {
+
+
+                        if (!empty($data['rootUrl']) && !empty($data['clientEmail']) && !empty($data['licenseKey'])) {
+                            $INSTALLATION_HASH = hash("sha256", $rootURL.$data['clientEmail'].$data['licenseKey']); //generate hash
+
+                            $post_info = "product_id=" . rawurlencode(config('lmconfig.LM_PRODUCT_ID')) . "&client_email=" . rawurlencode($data['clientEmail']) . "&license_code=" . rawurlencode($data['licenseKey']) . "&root_url=" . rawurlencode($rootURL) . "&installation_hash=" . rawurlencode($INSTALLATION_HASH) . "&license_signature=" . rawurlencode($this->generateScriptSignature($rootURL, $data['clientEmail'], $data['licenseKey']));
+                            $pubKey = $this->getMyKey(config('lmconfig.LM_ROOT_URL') . "/api/license/key", $post_info, $rootURL);
+
+                            $notifications_key = $this->parseServerNotifications($pubKey, $rootURL, $data['clientEmail'], $data['licenseKey']);
+
+                            $licenseVal = Generator::parse($notifications_key['notification_data']->licenseVal,$notifications_key['notification_data']->pubKey);
+
+
+                            if ($licenseVal['expiryDate'] < Carbon::now()) {
+                                //license expired.LM_CORE_NOTIFICATION_LICENSE_EXPIRED_PERIOD
+                                $notifications_array['notification_case'] = "notification_license_expired";
+                                $notifications_array['notification_text'] = config('lmconfig.LM_CORE_NOTIFICATION_LICENSE_EXPIRED_PERIOD');
+                            }
+
+                            if ($licenseVal['supportDate'] < Carbon::now()) {
+                                //support expired.LM_CORE_NOTIFICATION_LICENSE_SUPPORT_EXPIRED
+                                $notifications_array['notification_case'] = "notification_license_support_expired";
+                                $notifications_array['notification_text'] = config('lmconfig.LM_CORE_NOTIFICATION_LICENSE_SUPPORT_EXPIRED');
+
+                            }
+
+                            if ($licenseVal['productId'] != config('lmconfig.LM_PRODUCT_ID')) {
+                                // invalid license
+                                $notifications_array['notification_case'] = "notification_license_corrupted";
+                                $notifications_array['notification_text'] = config('lmconfig.LM_NOTIFICATION_LICENSE_CORRUPTED');
+                            }
+
+                            if ($licenseVal['cancelDate']) {
+                                // license cancelled / suspended.LM_CORE_NOTIFICATION_LICENSE_SUSPENDED
+                                $notifications_array['notification_case'] = "notification_license_suspended";
+                                $notifications_array['notification_text'] = config('lmconfig.LM_CORE_NOTIFICATION_LICENSE_SUSPENDED');
+                            }
+
+                            if ($licenseVal['productKey'] != config('lmconfig.LM_PRODUCT_KEY')) {
+                                // invalid license
+                                $notifications_array['notification_case'] = "notification_license_corrupted";
+                                $notifications_array['notification_text'] = config('lmconfig.LM_NOTIFICATION_LICENSE_CORRUPTED');
+                            }
+
+
+                            if ($licenseVal['rootUrl'] != $rootURL && $licenseVal['installLimit'] > 1) {
+                                // invalid domain for installation.LM_CORE_NOTIFICATION_INVALID_ROOT_URL
+                                $notifications_array['notification_case'] = "notification_invalid_url";
+                                $notifications_array['notification_text'] = config('lmconfig.LM_CORE_NOTIFICATION_INVALID_ROOT_URL');
+
+                            }
+
+
+                            if ($licenseVal['installLimit'] < $licenseVal['totalInstall']) {
+                                // all license installed.LM_NOTIFICATION_LICENSE_OCCUPIED
+                                $notifications_array['notification_case'] = "notification_license_limit";
+                                $notifications_array['notification_text'] = config('lmconfig.LM_NOTIFICATION_LICENSE_OCCUPIED');
+
+                            }
+
+
+                            if(!array_key_exists('notification_case', $notifications_array)){
+
+                                $notifications_array['notification_case']="notification_license_ok";
+                                $notifications_array['notification_text']=null;
+                                Storage::put('license.lic', $notifications_key['notification_data']->licenseVal);
+
+                            }
+
+
+
+
+                        } else {
+                            ////data not found in license file.
+                            $notifications_array['notification_case'] = "notification_license_corrupted";
+                            $notifications_array['notification_text'] = config('lmconfig.LM_NOTIFICATION_LICENSE_CORRUPTED');
+
+                        }
+
+
+
+                    } else {
+                        //invalid product key.
+                        $notifications_array['notification_case'] = "notification_license_corrupted";
+                        $notifications_array['notification_text'] = config('lmconfig.LM_NOTIFICATION_LICENSE_CORRUPTED');
                     }
 
-                    if ($notifications_array['notification_case']=="notification_license_cancelled" && config('lmconfig.LM_DELETE_CANCELLED')=="YES") //license cancelled, data deletion activated, so delete user data
-                    {
-                        $this->deleteData($MYSQLI_LINK);
-                    }
-                }
 
-                if ($this->customDecrypt($LRD, config('installer.PRODUCT_KEY').$INSTALLATION_KEY)<date("Y-m-d")) //used to make sure database gets updated only once a day, not every time script is executed. do it BEFORE new $INSTALLATION_KEY is generated
-                {
-                    $update_lrd_value=1;
-                }
 
-                if ($update_lrd_value==1 || $update_lcd_value==1) //update database only if $LRD or $LCD were changed
-                {
-                    if ($update_lcd_value==1) //generate new $LCD value ONLY if verification succeeded. Otherwise, old $LCD value should be used, so license will be verified again next time script is executed
-                    {
-                        $LCD=date("Y-m-d");
-                    }
-                    else //get existing DECRYPTED $LCD value because it will need to be re-encrypted using new $INSTALLATION_KEY in case license verification didn't succeed
-                    {
-                        $LCD=$this->customDecrypt($LCD, config('lmconfig.LM_PRODUCT_KEY').$INSTALLATION_KEY);
+
+                } else {
+                    //looks good for now so let us proceed with local check
+
+                    if ($data['expiryDate'] < Carbon::now()) {
+                        //license expired.LM_CORE_NOTIFICATION_LICENSE_EXPIRED_PERIOD
+                        $notifications_array['notification_case'] = "notification_license_expired";
+                        $notifications_array['notification_text'] = config('lmconfig.LM_CORE_NOTIFICATION_LICENSE_EXPIRED_PERIOD');
                     }
 
-                    $INSTALLATION_KEY=$this->customEncrypt(password_hash(date("Y-m-d"), PASSWORD_DEFAULT), config('lmconfig.LM_PRODUCT_KEY').$ROOT_URL); //generate $INSTALLATION_KEY first because it will be used as salt to encrypt LCD and LRD!!!
-                    $LCD=$this->customEncrypt($LCD, config('lmconfig.LM_PRODUCT_KEY').$INSTALLATION_KEY); //finally encrypt $LCD value (it will contain either DECRYPTED old date, either non-encrypted today's date)
-                    $LRD=$this->customEncrypt(date("Y-m-d"), config('lmconfig.LM_PRODUCT_KEY').$INSTALLATION_KEY); //generate new $LRD value every time database needs to be updated (because if LCD is higher than LRD, cracking attempt will be detected).
+                    if ($data['supportDate'] < Carbon::now()) {
+                        //support expired.LM_CORE_NOTIFICATION_LICENSE_SUPPORT_EXPIRED
+                        $notifications_array['notification_case'] = "notification_license_support_expired";
+                        $notifications_array['notification_text'] = config('lmconfig.LM_CORE_NOTIFICATION_LICENSE_SUPPORT_EXPIRED');
+
+                    }
+
+                    if ($data['productId'] != config('lmconfig.LM_PRODUCT_ID')) {
+                        // invalid license
+                        $notifications_array['notification_case'] = "notification_license_corrupted";
+                        $notifications_array['notification_text'] = config('lmconfig.LM_NOTIFICATION_LICENSE_CORRUPTED');
+                    }
+
+                    if ($data['cancelDate']) {
+                        // license cancelled / suspended.LM_CORE_NOTIFICATION_LICENSE_SUSPENDED
+                        $notifications_array['notification_case'] = "notification_license_suspended";
+                        $notifications_array['notification_text'] = config('lmconfig.LM_CORE_NOTIFICATION_LICENSE_SUSPENDED');
+                    }
+
+                    if ($data['productKey'] != config('lmconfig.LM_PRODUCT_KEY')) {
+                        // invalid license
+                        $notifications_array['notification_case'] = "notification_license_corrupted";
+                        $notifications_array['notification_text'] = config('lmconfig.LM_NOTIFICATION_LICENSE_CORRUPTED');
+                    }
 
 
-                    $licFile  = File::get(Storage::disk('local')->get('license.lic'));
-                    $pubKey = File::get(Storage::disk('local')->get('public.txt'));
-                    $parsedData = Generator::parse($licFile, $pubKey);
-                    $newRecord = DB::table('lmconfig')->where('id', 1)->update(['lastCheckedOn' => date("Y-m-d"),'expireOn' => '','supportTill' => '','FailedAttempts' => '','LCD' => $LCD,'LRD' => $LRD,'installationKey' => $INSTALLATION_KEY,'installationHash' => '']);
-                    $license = Generator::generate($newRecord, $pubKey);
-                    Storage::put('license.lic', $license);
+                    if ($data['rootUrl'] != $rootURL && $data['installLimit'] > 1) {
+                        // invalid domain for installation.LM_CORE_NOTIFICATION_INVALID_ROOT_URL
+                        $notifications_array['notification_case'] = "notification_invalid_url";
+                        $notifications_array['notification_text'] = config('lmconfig.LM_CORE_NOTIFICATION_INVALID_ROOT_URL');
+
+                    }
+
+
+                    if ($data['installLimit'] < $data['totalInstall']) {
+                        // all license installed.LM_NOTIFICATION_LICENSE_OCCUPIED
+                        $notifications_array['notification_case'] = "notification_license_limit";
+                        $notifications_array['notification_text'] = config('lmconfig.LM_NOTIFICATION_LICENSE_OCCUPIED');
+
+                    }
+
+                    if(!array_key_exists('notification_case', $notifications_array)){
+
+                        $notifications_array['notification_case']="notification_license_ok";
+                        $notifications_array['notification_text']=null;
+
+                    }
+
 
                 }
+
+
+            } else {
+                $notifications_array['notification_case'] = "notification_license_corrupted";
+                $notifications_array['notification_text'] = config('lmconfig.LM_NOTIFICATION_LICENSE_CORRUPTED');
             }
-            else //license is not installed yet or corrupted
-            {
-                $notifications_array['notification_case']="notification_license_corrupted";
-                $notifications_array['notification_text']=config('lmconfig.LM_NOTIFICATION_LICENSE_CORRUPTED');
-            }
+
+
+
         }
-        else //script is not properly configured
-        {
-            $notifications_array['notification_case']="notification_script_corrupted";
-            $notifications_array['notification_text']=implode("; ", $apl_core_notifications);
-        }
+
+
 
         return $notifications_array;
     }

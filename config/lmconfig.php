@@ -9,7 +9,7 @@ return [
     | and be different for each application you want to protect. Cannot be modified after installing script.
     |
     */
-    'LM_PRODUCT_KEY' => env('PRODUCT_KEY', '6FJHW5DA799DFG2VZ3KWMULND3TNN3TKHEK3WAXK43DP3386SRFUTR4BG27B'),
+    'LM_PRODUCT_KEY' => env('PRODUCT_KEY', '5M24NSR8TTAZNEBYF7Q4MSPDVSWGPYNYXT9NGCDFQWGYPUXM3T35EPC7SPFV'),
     'LM_API_KEY' => env('LM_API_KEY', 'BVGJXM2SWCXDMPQ3F5QT8ABJMA3A8F3Y6MKKM75G'),
     /*
     |--------------------------------------------------------------------------
@@ -30,7 +30,7 @@ return [
     | Product ID from License Manager App.
     |
     */
-    'LM_PRODUCT_ID' => env('PRODUCT_ID', 5),
+    'LM_PRODUCT_ID' => env('PRODUCT_ID', 11),
 
 
     /*
@@ -75,12 +75,16 @@ return [
     'LM_NOTIFICATION_DATABASE_WRITE_ERROR' => "Can't write to database.",
     'LM_NOTIFICATION_LICENSE_FILE_WRITE_ERROR' => "Can't write to license file.",
     'LM_CORE_NOTIFICATION_LICENSE_EXPIRED_PERIOD' => 'License is already expired',
+    'LM_CORE_NOTIFICATION_LICENSE_SUPPORT_EXPIRED' => 'Support is already expired',
+    'LM_CORE_NOTIFICATION_LICENSE_SUSPENDED' => 'License is suspended due to illegal usage of application.',
     'LM_NOTIFICATION_LICENSE_CORRUPTED' => 'License is not installed yet or corrupted.',
     'LM_NOTIFICATION_BYPASS_VERIFICATION' => 'No need to verify.',
+    'LM_NOTIFICATION_LICENSE_OCCUPIED' => 'All purchase licenses are already occupied.',
     'LM_NOTIFICATION_SCRIPT_ALREADY_INSTALLED' => 'Script is already installed (or database not empty).',
     "LM_CORE_NOTIFICATION_INVALID_PRODUCT_KEY" => "Configuration error: invalid or default product key missing.",
-    "LM_CORE_NOTIFICATION_INVALID_ROOT_URL" => "Configuration error: invalid root URL of Auto PHP Licenser installation",
+    "LM_CORE_NOTIFICATION_INVALID_ROOT_URL" => "Configuration error: invalid root URL of installation",
     "LM_CORE_NOTIFICATION_INVALID_PRODUCT_ID" => "Configuration error: invalid product ID",
+    "LM_CORE_NOTIFICATION_CLIENT_NOT_FOUND" => "Configuration error: client not found.",
     "LM_CORE_NOTIFICATION_INVALID_VERIFICATION_PERIOD" => "Configuration error: invalid license verification period",
     "LM_CORE_NOTIFICATION_INVALID_STORAGE" => "Configuration error: invalid license storage option",
     "LM_CORE_NOTIFICATION_INVALID_TABLE" => "Configuration error: invalid MySQL table name to store license signature",
