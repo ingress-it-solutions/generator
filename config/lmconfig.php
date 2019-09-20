@@ -93,6 +93,9 @@ return [
     "LM_CORE_NOTIFICATION_INVALID_ROOT_IP" => "Configuration error: invalid IP address of your Auto PHP Licenser installation",
     "LM_CORE_NOTIFICATION_INVALID_ROOT_NAMESERVERS" => "Configuration error: invalid nameservers of your Auto PHP Licenser installation",
     "LM_CORE_NOTIFICATION_INVALID_DNS" => "License error: actual IP address and/or nameservers of your Auto PHP Licenser installation don't match specified IP address and/or nameservers",
-    "LM_CORE_NOTIFICATION_MISSING_INSTALL_API_KEY" => "License is missing Installer API Key. Please contact your vendor for further details."
+    "LM_CORE_NOTIFICATION_MISSING_INSTALL_API_KEY" => "License is missing Installer API Key. Please contact your vendor for further details.",
+    "LM_CORE_NOTIFICATION_LICENSE_KEYFILE_MISSING" => "License error: This app hasn't completed all the steps of Setup.",
+    "LM_CORE_NOTIFICATION_LICENSE_FILE_MISSING" => "License error: Actual setup is missing license file",
+
 
 ];
