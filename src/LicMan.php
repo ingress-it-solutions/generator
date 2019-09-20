@@ -91,8 +91,17 @@ class LicMan
                 $post_info="product_id=".rawurlencode(config('lmconfig.LM_PRODUCT_ID'))."&client_email=".rawurlencode($CLIENT_EMAIL)."&license_code=".rawurlencode($LICENSE_CODE)."&root_url=".rawurlencode($ROOT_URL)."&installation_hash=".rawurlencode($INSTALLATION_HASH)."&license_signature=".rawurlencode($this->generateScriptSignature($ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE));
 
                 $content_array=$this->customPost(config('lmconfig.LM_ROOT_URL')."/api/license/install", $post_info, $ROOT_URL);
-                //dd($content_array);
-                $notifications_array = $this->parseServerNotifications($content_array, $ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE); //process response from Auto PHP Licenser server
+                $arrayData = json_decode($content_array['body']);
+
+                if($content_array['body'] === 'Your IP Address is not whitelisted.' || $content_array['body'] === 'Invalid API key' || $content_array['body'] === 'No valid API key'){
+
+                    $notifications_array['notification_case'] = "notification_api_not_whitelist";
+                    $notifications_array['notification_text'] = config('lmconfig.LM_CORE_NOTIFICATION_API_WHITELIST_ISSUE');
+                } else {
+                    $notifications_array = $this->parseServerNotifications($content_array, $ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE); //process response from Auto PHP Licenser server
+                }
+
+
                 //dd($notifications_array);
 
                 if ($notifications_array['notification_case']=="notification_license_ok") { //everything OK
@@ -101,31 +110,20 @@ class LicMan
                     $LCD=$this->customEncrypt(date("Y-m-d", strtotime("-".config('lmconfig.LM_DAYS')." days")), config('lmconfig.LM_PRODUCT_KEY').$INSTALLATION_KEY); //license will need to be verified right after installation
                     $LRD=$this->customEncrypt(date("Y-m-d"), config('lmconfig.LM_PRODUCT_KEY').$INSTALLATION_KEY);
 
-                    // Bhavik TODO need to get notification data $notifications_array['notification_data'] and add the value in below table records
-                    $newRecord = [
-                        'clientEmail' => 'john@example.com',
-                        'productKey' => config('lmconfig.LM_PRODUCT_KEY'),
-                        'lastCheckedOn' => Carbon::now(),
-                        'expireOn' => '',
-                        'supportTill' => '',
-                        'FailedAttempts' => '',
-                        'LCD' => $LCD,
-                        'LRD' => $LRD,
-                        'installationKey' => $INSTALLATION_KEY,
-                        'installationHash' => $INSTALLATION_HASH,
-                    ];
 
 
 
 
-                    $post_info="product_id=".rawurlencode(config('lmconfig.LM_PRODUCT_ID'))."&client_email=".rawurlencode($CLIENT_EMAIL)."&license_code=".rawurlencode($LICENSE_CODE)."&root_url=".rawurlencode($ROOT_URL)."&installation_hash=".rawurlencode($INSTALLATION_HASH)."&license_signature=".rawurlencode($this->generateScriptSignature($ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE));
+                    $post_info="product_id=".rawurlencode(config('lmconfig.LM_PRODUCT_ID')) ."&siteId=" . rawurlencode($arrayData->returnVariables->siteId) ."&client_email=".rawurlencode($CLIENT_EMAIL)."&license_code=".rawurlencode($LICENSE_CODE)."&root_url=".rawurlencode($ROOT_URL)."&installation_hash=".rawurlencode($INSTALLATION_HASH)."&license_signature=".rawurlencode($this->generateScriptSignature($ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE));
 
                     $pubKey = $this->getMyKey(config('lmconfig.LM_ROOT_URL')."/api/license/key", $post_info, $ROOT_URL);
 
                     //dd($pubKey);
                     $notifications_key =$this->parseServerNotifications($pubKey, $ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE);
 
-
+                    if(File::exists(storage_path('app/licenses.lic'))){
+                        Storage::delete('licenses.key');
+                    }
                     Storage::put('public.key', $notifications_key['notification_data']->pubKey);
                     Storage::put('license.lic', $notifications_key['notification_data']->licenseVal);
 
@@ -146,7 +144,11 @@ class LicMan
                     $notifications_array['notification_case']="notification_client_not_found";
                     $notifications_array['notification_text']=config('lmconfig.LM_CORE_NOTIFICATION_CLIENT_NOT_FOUND');
                     $notifications_array['notification_data'] = [];
-                } else{
+                } elseif($notifications_array['notification_case'] == "notification_api_not_whitelist") {
+
+                    $notifications_array['notification_case'] = "notification_api_not_whitelist";
+                    $notifications_array['notification_text'] = config('lmconfig.LM_CORE_NOTIFICATION_API_WHITELIST_ISSUE');
+                }else{
                     $notifications_array['notification_case']="notification_already_installed";
                     $notifications_array['notification_text']= config('lmconfig.LM_CORE_NOTIFICATION_INVALID_LICENSE_KEY');
                     $notifications_array['notification_data'] = [];
@@ -459,7 +461,7 @@ class LicMan
         }
     }
 
-    public function verifyLicense($rootURL, $forceCheck = false)
+    public function verifyLicense($rootUrl, $forceCheck = false)
     {
         $notifications_array=array();
         $update_lrd_value=0;
@@ -470,26 +472,27 @@ class LicMan
         if (empty($licman_core_notifications)) //only continue if script is properly configured
         {
 
-            if(File::exists('app/public.key')){
+
+            if(File::exists(storage_path('app/public.key'))){
                 $public = File::get(storage_path('app/public.key'));
             } else {
                 $notifications_array['notification_case'] = "notification_key_missing";
                 $notifications_array['notification_text'] = config('lmconfig.LM_CORE_NOTIFICATION_LICENSE_KEYFILE_MISSING');
             }
-            //dd($public);
 
-            if(File::exists('app/license.lic')){
+
+            if(File::exists(storage_path('app/license.lic'))){
                 $license = File::get(storage_path('app/license.lic'));
             } else {
                 $notifications_array['notification_case'] = "notification_key_missing";
                 $notifications_array['notification_text'] = config('lmconfig.LM_CORE_NOTIFICATION_LICENSE_FILE_MISSING');
             }
 
-            // dd($license);
-            if(File::exists('app/license.lic') && File::exists('app/public.key')){
+
+            if(File::exists(storage_path('app/license.lic')) && File::exists(storage_path('app/public.key'))){
                 $data = Generator::parse($license, $public);
             }
-
+            //dd($data);
             if (!empty($data)) {
 
                 if ($this->checkDate($data) || $forceCheck) {
@@ -499,13 +502,17 @@ class LicMan
 
 
                         if (!empty($data['rootUrl']) && !empty($data['clientEmail']) && !empty($data['licenseKey'])) {
-                            $INSTALLATION_HASH = hash("sha256", $rootURL.$data['clientEmail'].$data['licenseKey']); //generate hash
+                            $INSTALLATION_HASH = hash("sha256", $rootUrl.$data['clientEmail'].$data['licenseKey']); //generate hash
 
-                            $post_info = "product_id=" . rawurlencode(config('lmconfig.LM_PRODUCT_ID')) . "&client_email=" . rawurlencode($data['clientEmail']) . "&license_code=" . rawurlencode($data['licenseKey']) . "&root_url=" . rawurlencode($rootURL) . "&installation_hash=" . rawurlencode($INSTALLATION_HASH) . "&license_signature=" . rawurlencode($this->generateScriptSignature($rootURL, $data['clientEmail'], $data['licenseKey']));
-                            $pubKey = $this->getMyKey(config('lmconfig.LM_ROOT_URL') . "/api/license/key", $post_info, $rootURL);
+                            $post_info = "product_id=" . rawurlencode(config('lmconfig.LM_PRODUCT_ID')) ."&siteId=" . rawurlencode($data['siteId']) .  "&client_email=" . rawurlencode($data['clientEmail']) . "&license_code=" . rawurlencode($data['licenseKey']) . "&root_url=" . rawurlencode($rootUrl) . "&installation_hash=" . rawurlencode($INSTALLATION_HASH) . "&license_signature=" . rawurlencode($this->generateScriptSignature($rootUrl, $data['clientEmail'], $data['licenseKey']));
+                            $pubKey = $this->getMyKey(config('lmconfig.LM_ROOT_URL') . "/api/license/key", $post_info, $rootUrl);
+                            if($pubKey['body'] === 'Your IP Address is not whitelisted.' || $pubKey['body'] === 'Invalid API key' || $pubKey['body'] === 'No valid API key'){
 
-                            $notifications_key = $this->parseServerNotifications($pubKey, $rootURL, $data['clientEmail'], $data['licenseKey']);
-
+                                $notifications_array['notification_case'] = "notification_api_not_whitelist";
+                                $notifications_array['notification_text'] = config('lmconfig.LM_CORE_NOTIFICATION_API_WHITELIST_ISSUE');
+                            } else {
+                                $notifications_key = $this->parseServerNotifications($pubKey, $rootUrl, $data['clientEmail'], $data['licenseKey']);
+                            }
 
                             if(!empty($notifications_key['notification_data']) && array_key_exists('licenseVal', $notifications_key['notification_data'])) {
 
@@ -550,7 +557,7 @@ class LicMan
                                 }
 
 
-                                if ($licenseVal['rootUrl'] != $rootURL && $licenseVal['installLimit'] > 1) {
+                                if ($licenseVal['rootUrl'] != $rootUrl && $licenseVal['installLimit'] > 1) {
                                     // invalid domain for installation.LM_CORE_NOTIFICATION_INVALID_ROOT_URL
                                     $notifications_array['notification_case'] = "notification_invalid_url";
                                     $notifications_array['notification_text'] = config('lmconfig.LM_CORE_NOTIFICATION_INVALID_ROOT_URL');
@@ -658,7 +665,7 @@ class LicMan
                     }
 
 
-                    if ($data['rootUrl'] != $rootURL && $data['installLimit'] > 1) {
+                    if ($data['rootUrl'] != $rootUrl && $data['installLimit'] > 1) {
                         // invalid domain for installation.LM_CORE_NOTIFICATION_INVALID_ROOT_URL
                         $notifications_array['notification_case'] = "notification_invalid_url";
                         $notifications_array['notification_text'] = config('lmconfig.LM_CORE_NOTIFICATION_INVALID_ROOT_URL');
@@ -785,6 +792,140 @@ class LicMan
 
 
 
+    public function uninstallLicense($rootUrl){
+        $notifications_array=array();
+        $apl_core_notifications= $this->checkSettings(); //check core settings
+
+        if (empty($apl_core_notifications)) {//only continue if script is properly configured
+
+            if(File::exists(storage_path('app/public.key'))){
+                $public = File::get(storage_path('app/public.key'));
+            } else {
+                $notifications_array['notification_case'] = "notification_key_missing";
+                $notifications_array['notification_text'] = config('lmconfig.LM_CORE_NOTIFICATION_LICENSE_KEYFILE_MISSING');
+            }
+
+
+            if(File::exists(storage_path('app/license.lic'))){
+                $license = File::get(storage_path('app/license.lic'));
+            } else {
+                $notifications_array['notification_case'] = "notification_key_missing";
+                $notifications_array['notification_text'] = config('lmconfig.LM_CORE_NOTIFICATION_LICENSE_FILE_MISSING');
+            }
+
+
+            if(File::exists(storage_path('app/license.lic')) && File::exists(storage_path('app/public.key'))){
+                $data = Generator::parse($license, $public);
+            }
+            //dd($data);
+            if (!empty($data)) {
+
+                if ($data['expiryDate'] < Carbon::now()) {
+                    //license expired.LM_CORE_NOTIFICATION_LICENSE_EXPIRED_PERIOD
+                    $notifications_array['notification_case'] = "notification_license_expired";
+                    $notifications_array['notification_text'] = config('lmconfig.LM_CORE_NOTIFICATION_LICENSE_EXPIRED_PERIOD');
+                }
+
+                if ($data['supportDate'] < Carbon::now()) {
+                    //support expired.LM_CORE_NOTIFICATION_LICENSE_SUPPORT_EXPIRED
+                    $notifications_array['notification_case'] = "notification_license_support_expired";
+                    $notifications_array['notification_text'] = config('lmconfig.LM_CORE_NOTIFICATION_LICENSE_SUPPORT_EXPIRED');
+
+                }
+
+                if ($data['productId'] != config('lmconfig.LM_PRODUCT_ID')) {
+                    // invalid license
+                    $notifications_array['notification_case'] = "notification_license_corrupted";
+                    $notifications_array['notification_text'] = config('lmconfig.LM_NOTIFICATION_LICENSE_CORRUPTED');
+                    if(config('lmconfig.LM_DELETE_CRACKED')) {
+                        Storage::delete('public.key');
+                        Storage::delete('license.lic');
+                        Storage::put('licenses.lic', 'You are not god.');
+                    }
+                }
+
+                if ($data['cancelDate']) {
+                    // license cancelled / suspended.LM_CORE_NOTIFICATION_LICENSE_SUSPENDED
+                    $notifications_array['notification_case'] = "notification_license_suspended";
+                    $notifications_array['notification_text'] = config('lmconfig.LM_CORE_NOTIFICATION_LICENSE_SUSPENDED');
+
+                }
+
+                if ($data['productKey'] != config('lmconfig.LM_PRODUCT_KEY')) {
+                    // invalid license
+                    $notifications_array['notification_case'] = "notification_license_corrupted";
+                    $notifications_array['notification_text'] = config('lmconfig.LM_NOTIFICATION_LICENSE_CORRUPTED');
+                    if(config('lmconfig.LM_DELETE_CRACKED')) {
+                        Storage::delete('public.key');
+                        Storage::delete('license.lic');
+                        Storage::put('licenses.lic', 'You are not god.');
+                    }
+                }
+
+
+                if ($data['rootUrl'] != $rootUrl && $data['installLimit'] > 1) {
+                    // invalid domain for installation.LM_CORE_NOTIFICATION_INVALID_ROOT_URL
+                    $notifications_array['notification_case'] = "notification_invalid_url";
+                    $notifications_array['notification_text'] = config('lmconfig.LM_CORE_NOTIFICATION_INVALID_ROOT_URL');
+
+                }
+
+
+                if ($data['installLimit'] < $data['totalInstall']) {
+                    // all license installed.LM_NOTIFICATION_LICENSE_OCCUPIED
+                    $notifications_array['notification_case'] = "notification_license_limit";
+                    $notifications_array['notification_text'] = config('lmconfig.LM_NOTIFICATION_LICENSE_OCCUPIED');
+
+                }
+
+                if(!array_key_exists('notification_case', $notifications_array)){
+
+                    $notifications_array['notification_case']="notification_license_ok";
+                    $notifications_array['notification_text']=null;
+
+
+                    $INSTALLATION_HASH = hash("sha256", $rootUrl.$data['clientEmail'].$data['licenseKey']); //generate hash
+                    $post_info = "product_id=" . rawurlencode(config('lmconfig.LM_PRODUCT_ID')) . "&siteId=" . rawurlencode($data['siteId']) . "&client_email=" . rawurlencode($data['clientEmail']) . "&license_code=" . rawurlencode($data['licenseKey']) . "&root_url=" . rawurlencode($rootUrl) . "&installation_hash=" . rawurlencode($INSTALLATION_HASH) . "&license_signature=" . rawurlencode($this->generateScriptSignature($rootUrl, $data['clientEmail'], $data['licenseKey']));
+                    $pubKey = $this->getMyKey(config('lmconfig.LM_ROOT_URL') . "/api/license/uninstall", $post_info, $rootUrl);
+
+                    if($pubKey['body'] === 'Your IP Address is not whitelisted.' || $pubKey['body'] === 'Invalid API key' || $pubKey['body'] === 'No valid API key'){
+
+                        $notifications_array['notification_case'] = "notification_api_not_whitelist";
+                        $notifications_array['notification_text'] = config('lmconfig.LM_CORE_NOTIFICATION_API_WHITELIST_ISSUE');
+                    } else {
+
+                        $notifications_key = $this->parseServerNotifications($pubKey, $rootUrl, $data['clientEmail'], $data['licenseKey']);
+
+                        Storage::put('license.lic', $notifications_key['notification_data']->licenseVal);
+                    }
+
+                }
+
+
+            } else {
+                $notifications_array['notification_case'] = "notification_license_corrupted";
+                $notifications_array['notification_text'] = config('lmconfig.LM_NOTIFICATION_LICENSE_CORRUPTED');
+                if(config('lmconfig.LM_DELETE_CRACKED')) {
+                    Storage::delete('public.key');
+                    Storage::delete('license.lic');
+                    Storage::put('licenses.lic', 'You are not god.');
+                }
+            }
+
+
+
+        } else {
+            $notifications_array['notification_case'] = "notification_license_corrupted";
+            $notifications_array['notification_text'] = config('lmconfig.LM_NOTIFICATION_LICENSE_CORRUPTED');
+            if(config('lmconfig.LM_DELETE_CRACKED')) {
+                Storage::delete('public.key');
+                Storage::delete('license.lic');
+                Storage::put('licenses.lic', 'You are not god.');
+            }
+        }
+
+        return $notifications_array;
+    }
 
     //return root url from long url (http://www.domain.com/path/file.php?aa=xx becomes http://www.domain.com/path/), remove scheme, www. and last slash if needed
     public function getRootUrl($url, $remove_scheme, $remove_www, $remove_path, $remove_last_slash)
