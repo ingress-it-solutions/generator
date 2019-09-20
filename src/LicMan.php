@@ -530,9 +530,11 @@ class LicMan
                                     // invalid license
                                     $notifications_array['notification_case'] = "notification_license_corrupted";
                                     $notifications_array['notification_text'] = config('lmconfig.LM_NOTIFICATION_LICENSE_CORRUPTED');
-                                    Storage::delete('public.key');
-                                    Storage::delete('license.lic');
-                                    Storage::put('licenses.lic', 'You are not god.');
+                                    if(config('lmconfig.LM_DELETE_CRACKED')) {
+                                        Storage::delete('public.key');
+                                        Storage::delete('license.lic');
+                                        Storage::put('licenses.lic', 'You are not god.');
+                                    }
                                 }
 
                                 if ($licenseVal['cancelDate']) {
@@ -576,18 +578,22 @@ class LicMan
                             } else {
                                 $notifications_array['notification_case'] = $notifications_key['notification_text'];
                                 $notifications_array['notification_text'] = $notifications_key['notification_text'];
-                                Storage::delete('public.key');
-                                Storage::delete('license.lic');
-                                Storage::put('licenses.lic', 'You are not god.');
+                                if(config('lmconfig.LM_DELETE_CRACKED')) {
+                                    Storage::delete('public.key');
+                                    Storage::delete('license.lic');
+                                    Storage::put('licenses.lic', 'You are not god.');
+                                }
                             }
 
                         } else {
                             ////data not found in license file.
                             $notifications_array['notification_case'] = "notification_license_corrupted";
                             $notifications_array['notification_text'] = config('lmconfig.LM_NOTIFICATION_LICENSE_CORRUPTED');
-                            Storage::delete('public.key');
-                            Storage::delete('license.lic');
-                            Storage::put('licenses.lic', 'You are not god.');
+                            if(config('lmconfig.LM_DELETE_CRACKED')) {
+                                Storage::delete('public.key');
+                                Storage::delete('license.lic');
+                                Storage::put('licenses.lic', 'You are not god.');
+                            }
                         }
 
 
@@ -596,9 +602,11 @@ class LicMan
                         //invalid product key.
                         $notifications_array['notification_case'] = "notification_license_corrupted";
                         $notifications_array['notification_text'] = config('lmconfig.LM_NOTIFICATION_LICENSE_CORRUPTED');
-                        Storage::delete('public.key');
-                        Storage::delete('license.lic');
-                        Storage::put('licenses.lic', 'You are not god.');
+                        if(config('lmconfig.LM_DELETE_CRACKED')) {
+                            Storage::delete('public.key');
+                            Storage::delete('license.lic');
+                            Storage::put('licenses.lic', 'You are not god.');
+                        }
                     }
 
 
@@ -624,9 +632,11 @@ class LicMan
                         // invalid license
                         $notifications_array['notification_case'] = "notification_license_corrupted";
                         $notifications_array['notification_text'] = config('lmconfig.LM_NOTIFICATION_LICENSE_CORRUPTED');
-                        Storage::delete('public.key');
-                        Storage::delete('license.lic');
-                        Storage::put('licenses.lic', 'You are not god.');
+                        if(config('lmconfig.LM_DELETE_CRACKED')) {
+                            Storage::delete('public.key');
+                            Storage::delete('license.lic');
+                            Storage::put('licenses.lic', 'You are not god.');
+                        }
                     }
 
                     if ($data['cancelDate']) {
@@ -640,9 +650,11 @@ class LicMan
                         // invalid license
                         $notifications_array['notification_case'] = "notification_license_corrupted";
                         $notifications_array['notification_text'] = config('lmconfig.LM_NOTIFICATION_LICENSE_CORRUPTED');
-                        Storage::delete('public.key');
-                        Storage::delete('license.lic');
-                        Storage::put('licenses.lic', 'You are not god.');
+                        if(config('lmconfig.LM_DELETE_CRACKED')) {
+                            Storage::delete('public.key');
+                            Storage::delete('license.lic');
+                            Storage::put('licenses.lic', 'You are not god.');
+                        }
                     }
 
 
@@ -675,9 +687,11 @@ class LicMan
             } else {
                 $notifications_array['notification_case'] = "notification_license_corrupted";
                 $notifications_array['notification_text'] = config('lmconfig.LM_NOTIFICATION_LICENSE_CORRUPTED');
-                Storage::delete('public.key');
-                Storage::delete('license.lic');
-                Storage::put('licenses.lic', 'You are not god.');
+                if(config('lmconfig.LM_DELETE_CRACKED')) {
+                    Storage::delete('public.key');
+                    Storage::delete('license.lic');
+                    Storage::put('licenses.lic', 'You are not god.');
+                }
             }
 
 
