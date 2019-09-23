@@ -357,7 +357,7 @@ class LicMan
     public function checkDate($data){
 
         if($data['lastCheckedDate']){
-            if(Carbon::now() > Carbon::parse($data['lastCheckedDate'])->addDays(config('lmconfig.LM_DAYS')) && Carbon::parse($data['lastCheckedDate'])->addDays(config('lmconfig.LM_DAYS')) < 8){
+            if(Carbon::now() > Carbon::createFromFormat('Y-m-d',$data['lastCheckedDate'])->addDays(config('lmconfig.LM_DAYS'))->toDateTimeString() && Carbon::createFromFormat('Y-m-d',$data['lastCheckedDate'])->addDays(config('lmconfig.LM_DAYS'))->toDateTimeString() < 8){
                 return true;
             } else {
                 return false;
@@ -467,6 +467,7 @@ class LicMan
                 $post_info="product_id=".rawurlencode(config('lmconfig.LM_PRODUCT_ID'))."&client_email=".rawurlencode($CLIENT_EMAIL)."&license_code=".rawurlencode($LICENSE_CODE)."&root_url=".rawurlencode($ROOT_URL)."&installation_hash=".rawurlencode($INSTALLATION_HASH)."&license_signature=".rawurlencode($this->generateScriptSignature($ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE));
 
                 $content_array=$this->customPost(config('lmconfig.LM_ROOT_URL')."/api/license/install", $post_info, $ROOT_URL);
+                //dd($content_array['body']);
                 $arrayData = json_decode($content_array['body']);
 
                 if($content_array['body'] === 'Your IP Address is not whitelisted.' || $content_array['body'] === 'Invalid API key' || $content_array['body'] === 'No valid API key'){
@@ -646,12 +647,7 @@ class LicMan
                                 }
 
 
-                                if ($licenseVal['installLimit'] < $licenseVal['totalInstall']) {
-                                    // all license installed.LM_NOTIFICATION_LICENSE_OCCUPIED
-                                    $notifications_array['notification_case'] = "notification_license_limit";
-                                    $notifications_array['notification_text'] = config('lmconfig.LM_NOTIFICATION_LICENSE_OCCUPIED');
 
-                                }
 
 
                                 if (!array_key_exists('notification_case', $notifications_array)) {
@@ -1160,21 +1156,7 @@ class LicMan
 
 
 
-                if (intval($data['installLimit']) < 1) {
-                    // invalid domain for installation.LM_CORE_NOTIFICATION_INVALID_ROOT_URL
 
-                    $notifications_array['notification_case'] = "notification_invalid_url";
-                    $notifications_array['notification_text'] = config('lmconfig.LM_CORE_NOTIFICATION_INVALID_ROOT_URL');
-
-                }
-
-
-                if ($data['installLimit'] < $data['totalInstall']) {
-                    // all license installed.LM_NOTIFICATION_LICENSE_OCCUPIED
-                    $notifications_array['notification_case'] = "notification_license_limit";
-                    $notifications_array['notification_text'] = config('lmconfig.LM_NOTIFICATION_LICENSE_OCCUPIED');
-
-                }
 
 
                 if(!array_key_exists('notification_case', $notifications_array)){
@@ -1314,23 +1296,6 @@ class LicMan
                     }
                 }
 
-
-
-                if (intval($data['installLimit']) < 1) {
-                    // invalid domain for installation.LM_CORE_NOTIFICATION_INVALID_ROOT_URL
-
-                    $notifications_array['notification_case'] = "notification_invalid_url";
-                    $notifications_array['notification_text'] = config('lmconfig.LM_CORE_NOTIFICATION_INVALID_ROOT_URL');
-
-                }
-
-
-                if ($data['installLimit'] < $data['totalInstall']) {
-                    // all license installed.LM_NOTIFICATION_LICENSE_OCCUPIED
-                    $notifications_array['notification_case'] = "notification_license_limit";
-                    $notifications_array['notification_text'] = config('lmconfig.LM_NOTIFICATION_LICENSE_OCCUPIED');
-
-                }
 
 
                 if(!array_key_exists('notification_case', $notifications_array)){

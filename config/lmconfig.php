@@ -9,8 +9,8 @@ return [
     | and be different for each application you want to protect. Cannot be modified after installing script.
     |
     */
-    'LM_PRODUCT_KEY' => env('PRODUCT_KEY', '5M24NSR8TTAZNEBYF7Q4MSPDVSWGPYNYXT9NGCDFQWGYPUXM3T35EPC7SPFV'),
-    'LM_API_KEY' => env('LM_API_KEY', 'BVGJXM2SWCXDMPQ3F5QT8ABJMA3A8F3Y6MKKM75G'),
+    'LM_PRODUCT_KEY' => env('PRODUCT_KEY', 'A4YFMNWCA2DD7PS6Z383MVHYKZXZG6X5UU7RMYQ692DFJJU3MST3WA3CUAE5'),
+    'LM_API_KEY' => env('LM_API_KEY', 'LDF55GHJ6NTLDZ2R6CAGYEEUP67DP9X9CDT6GNCH'),
     /*
     |--------------------------------------------------------------------------
     | LM_ROOT_URL
@@ -30,7 +30,7 @@ return [
     | Product ID from License Manager App.
     |
     */
-    'LM_PRODUCT_ID' => env('PRODUCT_ID', 11),
+    'LM_PRODUCT_ID' => env('PRODUCT_ID', 1),
 
 
     /*
