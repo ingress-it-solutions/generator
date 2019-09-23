@@ -73,7 +73,7 @@ return [
     'LM_NOTIFICATION_NO_CONNECTION' => "Can't connect to licensing server.",
     'LM_NOTIFICATION_INVALID_RESPONSE' => 'Invalid server response.',
     'LM_NOTIFICATION_DATABASE_WRITE_ERROR' => "Can't write to database.",
-    'LM_CORE_NOTIFICATION_API_WHITELIST_ISSUE' => 'License Error: Your server is not whitelisted or you are missing API information.',
+    'LM_CORE_NOTIFICATION_API_WHITELIST_ISSUE' => "License Error: License server doesn't identify you as whitelisted accessor.",
     'LM_NOTIFICATION_LICENSE_FILE_WRITE_ERROR' => "Can't write to license file.",
     'LM_CORE_NOTIFICATION_LICENSE_EXPIRED_PERIOD' => 'License is already expired',
     'LM_CORE_NOTIFICATION_LICENSE_UPDATE_EXPIRED' => 'Updates to this product is already expired',

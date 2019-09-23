@@ -588,6 +588,7 @@ class LicMan
 
                             $post_info = "product_id=" . rawurlencode(config('lmconfig.LM_PRODUCT_ID')) ."&siteId=" . rawurlencode($data['siteId']) .  "&client_email=" . rawurlencode($data['clientEmail']) . "&license_code=" . rawurlencode($data['licenseKey']) . "&root_url=" . rawurlencode($rootUrl) . "&installation_hash=" . rawurlencode($INSTALLATION_HASH) . "&license_signature=" . rawurlencode($this->generateScriptSignature($rootUrl, $data['clientEmail'], $data['licenseKey']));
                             $pubKey = $this->getMyKey(config('lmconfig.LM_ROOT_URL') . "/api/license/key", $post_info, $rootUrl);
+                            //dd($pubKey);
                             if($pubKey['body'] === 'Your IP Address is not whitelisted.' || $pubKey['body'] === 'Invalid API key' || $pubKey['body'] === 'No valid API key'){
 
                                 $notifications_array['notification_case'] = "notification_api_not_whitelist";
@@ -596,78 +597,78 @@ class LicMan
                                 $notifications_key = $this->parseServerNotifications($pubKey, $rootUrl, $data['clientEmail'], $data['licenseKey']);
                             }
 
-                            if(!empty($notifications_key['notification_data']) && array_key_exists('licenseVal', $notifications_key['notification_data'])) {
+                            if(!empty($notifications_key)) {
+                                if (!empty($notifications_key['notification_data']) && array_key_exists('licenseVal', $notifications_key['notification_data'])) {
 
 
-                                $licenseVal = Generator::parse($notifications_key['notification_data']->licenseVal, $notifications_key['notification_data']->pubKey);
+                                    $licenseVal = Generator::parse($notifications_key['notification_data']->licenseVal, $notifications_key['notification_data']->pubKey);
 
 
-                                if ($licenseVal['expiryDate'] < Carbon::now()) {
-                                    //license expired.LM_CORE_NOTIFICATION_LICENSE_EXPIRED_PERIOD
-                                    $notifications_array['notification_case'] = "notification_license_expired";
-                                    $notifications_array['notification_text'] = config('lmconfig.LM_CORE_NOTIFICATION_LICENSE_EXPIRED_PERIOD');
-                                }
+                                    if ($licenseVal['expiryDate'] < Carbon::now()) {
+                                        //license expired.LM_CORE_NOTIFICATION_LICENSE_EXPIRED_PERIOD
+                                        $notifications_array['notification_case'] = "notification_license_expired";
+                                        $notifications_array['notification_text'] = config('lmconfig.LM_CORE_NOTIFICATION_LICENSE_EXPIRED_PERIOD');
+                                    }
 
-                                if ($licenseVal['supportDate'] < Carbon::now()) {
-                                    //support expired.LM_CORE_NOTIFICATION_LICENSE_SUPPORT_EXPIRED
-                                    $notifications_array['notification_case'] = "notification_license_support_expired";
-                                    $notifications_array['notification_text'] = config('lmconfig.LM_CORE_NOTIFICATION_LICENSE_SUPPORT_EXPIRED');
+                                    if ($licenseVal['supportDate'] < Carbon::now()) {
+                                        //support expired.LM_CORE_NOTIFICATION_LICENSE_SUPPORT_EXPIRED
+                                        $notifications_array['notification_case'] = "notification_license_support_expired";
+                                        $notifications_array['notification_text'] = config('lmconfig.LM_CORE_NOTIFICATION_LICENSE_SUPPORT_EXPIRED');
 
-                                }
+                                    }
 
-                                if ($licenseVal['productId'] != config('lmconfig.LM_PRODUCT_ID')) {
-                                    // invalid license
-                                    $notifications_array['notification_case'] = "notification_license_corrupted";
-                                    $notifications_array['notification_text'] = config('lmconfig.LM_NOTIFICATION_LICENSE_CORRUPTED');
-                                    if(config('lmconfig.LM_DELETE_CRACKED')) {
+                                    if ($licenseVal['productId'] != config('lmconfig.LM_PRODUCT_ID')) {
+                                        // invalid license
+                                        $notifications_array['notification_case'] = "notification_license_corrupted";
+                                        $notifications_array['notification_text'] = config('lmconfig.LM_NOTIFICATION_LICENSE_CORRUPTED');
+                                        if (config('lmconfig.LM_DELETE_CRACKED')) {
+                                            Storage::delete('public.key');
+                                            Storage::delete('license.lic');
+                                            Storage::put('licenses.lic', 'You are not god.');
+                                        }
+                                    }
+
+                                    if ($licenseVal['cancelDate']) {
+                                        // license cancelled / suspended.LM_CORE_NOTIFICATION_LICENSE_SUSPENDED
+                                        $notifications_array['notification_case'] = "notification_license_suspended";
+                                        $notifications_array['notification_text'] = config('lmconfig.LM_CORE_NOTIFICATION_LICENSE_SUSPENDED');
+                                    }
+
+                                    if ($licenseVal['productKey'] != config('lmconfig.LM_PRODUCT_KEY')) {
+                                        // invalid license
+                                        $notifications_array['notification_case'] = "notification_license_corrupted";
+                                        $notifications_array['notification_text'] = config('lmconfig.LM_NOTIFICATION_LICENSE_CORRUPTED');
+                                    }
+
+
+                                    if ($licenseVal['rootUrl'] != $rootUrl && $licenseVal['installLimit'] > 1) {
+                                        // invalid domain for installation.LM_CORE_NOTIFICATION_INVALID_ROOT_URL
+                                        $notifications_array['notification_case'] = "notification_invalid_url";
+                                        $notifications_array['notification_text'] = config('lmconfig.LM_CORE_NOTIFICATION_INVALID_ROOT_URL');
+
+                                    }
+
+
+                                    if (!array_key_exists('notification_case', $notifications_array)) {
+
+                                        $notifications_array['notification_case'] = "notification_license_ok";
+                                        $notifications_array['notification_text'] = null;
+                                        Storage::put('license.lic', $notifications_key['notification_data']->licenseVal);
+
+                                    }
+
+
+                                } else {
+                                    $notifications_array['notification_case'] = $notifications_key['notification_text'];
+                                    $notifications_array['notification_text'] = $notifications_key['notification_text'];
+                                    if (config('lmconfig.LM_DELETE_CRACKED')) {
                                         Storage::delete('public.key');
                                         Storage::delete('license.lic');
                                         Storage::put('licenses.lic', 'You are not god.');
                                     }
                                 }
-
-                                if ($licenseVal['cancelDate']) {
-                                    // license cancelled / suspended.LM_CORE_NOTIFICATION_LICENSE_SUSPENDED
-                                    $notifications_array['notification_case'] = "notification_license_suspended";
-                                    $notifications_array['notification_text'] = config('lmconfig.LM_CORE_NOTIFICATION_LICENSE_SUSPENDED');
-                                }
-
-                                if ($licenseVal['productKey'] != config('lmconfig.LM_PRODUCT_KEY')) {
-                                    // invalid license
-                                    $notifications_array['notification_case'] = "notification_license_corrupted";
-                                    $notifications_array['notification_text'] = config('lmconfig.LM_NOTIFICATION_LICENSE_CORRUPTED');
-                                }
-
-
-                                if ($licenseVal['rootUrl'] != $rootUrl && $licenseVal['installLimit'] > 1) {
-                                    // invalid domain for installation.LM_CORE_NOTIFICATION_INVALID_ROOT_URL
-                                    $notifications_array['notification_case'] = "notification_invalid_url";
-                                    $notifications_array['notification_text'] = config('lmconfig.LM_CORE_NOTIFICATION_INVALID_ROOT_URL');
-
-                                }
-
-
-
-
-
-                                if (!array_key_exists('notification_case', $notifications_array)) {
-
-                                    $notifications_array['notification_case'] = "notification_license_ok";
-                                    $notifications_array['notification_text'] = null;
-                                    Storage::put('license.lic', $notifications_key['notification_data']->licenseVal);
-
-                                }
-
-
-                            } else {
-                                $notifications_array['notification_case'] = $notifications_key['notification_text'];
-                                $notifications_array['notification_text'] = $notifications_key['notification_text'];
-                                if(config('lmconfig.LM_DELETE_CRACKED')) {
-                                    Storage::delete('public.key');
-                                    Storage::delete('license.lic');
-                                    Storage::put('licenses.lic', 'You are not god.');
-                                }
                             }
+
 
                         } else {
                             ////data not found in license file.
