@@ -71,6 +71,7 @@ return [
     |
     */
     'LM_NOTIFICATION_NO_CONNECTION' => "Can't connect to licensing server.",
+    'LM_NOTIFICATION_INVALID_SIGNATURE' => "Installation on localhost is not allowed.",
     'LM_NOTIFICATION_INVALID_RESPONSE' => 'Invalid server response.',
     'LM_NOTIFICATION_DATABASE_WRITE_ERROR' => "Can't write to database.",
     'LM_CORE_NOTIFICATION_API_WHITELIST_ISSUE' => "License Error: License server doesn't identify you as whitelisted accessor.",

@@ -145,7 +145,10 @@ class LicMan
         if (!empty($content_array)) { //response received, validate it
             $body = json_decode($content_array['body']);
 
-            if (!empty($body->notification_server_signature) && $this->verifyServerSignature($body->notification_server_signature, $ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE)) {//response valid
+            if(empty($body->notification_server_signature) && $body->notification_case === 'notification_invalid_signature'){
+                $notifications_array['notification_case']="notification_invalid_signature";
+                $notifications_array['notification_text']=config('lmconfig.LM_NOTIFICATION_INVALID_SIGNATURE');
+            } elseif (!empty($body->notification_server_signature) && $this->verifyServerSignature($body->notification_server_signature, $ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE)) {//response valid
                 $notifications_array['notification_case']=$body->notification_case;
                 $notifications_array['notification_text']=$body->notification_text;
                 if (!empty($body->returnVariables)) { //additional data returned
@@ -467,7 +470,7 @@ class LicMan
                 $post_info="product_id=".rawurlencode(config('lmconfig.LM_PRODUCT_ID'))."&client_email=".rawurlencode($CLIENT_EMAIL)."&license_code=".rawurlencode($LICENSE_CODE)."&root_url=".rawurlencode($ROOT_URL)."&installation_hash=".rawurlencode($INSTALLATION_HASH)."&license_signature=".rawurlencode($this->generateScriptSignature($ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE));
 //dd(rawurlencode($this->generateScriptSignature($ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE)));
                 $content_array=$this->customPost(config('lmconfig.LM_ROOT_URL')."/api/license/install", $post_info, $ROOT_URL);
-                dd($content_array);
+
                 $arrayData = json_decode($content_array['body']);
 
                 if($content_array['body'] === 'Your IP Address is not whitelisted.' || $content_array['body'] === 'Invalid API key' || $content_array['body'] === 'No valid API key'){
@@ -505,7 +508,12 @@ class LicMan
                     Storage::put('license.lic', $notifications_key['notification_data']->licenseVal);
 
 
-                }  elseif($notifications_array['notification_case'] == 'notification_license_expired') {
+
+                } elseif($notifications_array['notification_case'] == 'notification_invalid_signature') {
+                    $notifications_array['notification_case']="notification_invalid_signature";
+                    $notifications_array['notification_text']=config('lmconfig.LM_NOTIFICATION_INVALID_SIGNATURE');
+                    $notifications_array['notification_data'] = [];
+                } elseif($notifications_array['notification_case'] == 'notification_license_expired') {
                     $notifications_array['notification_case']="notification_license_expired";
                     $notifications_array['notification_text']=config('lmconfig.LM_CORE_NOTIFICATION_LICENSE_EXPIRED_PERIOD');
                     $notifications_array['notification_data'] = [];
