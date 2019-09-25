@@ -9,8 +9,8 @@ return [
     | and be different for each application you want to protect. Cannot be modified after installing script.
     |
     */
-    'LM_PRODUCT_KEY' => env('PRODUCT_KEY', 'A4YFMNWCA2DD7PS6Z383MVHYKZXZG6X5UU7RMYQ692DFJJU3MST3WA3CUAE5'),
-    'LM_API_KEY' => env('LM_API_KEY', 'LDF55GHJ6NTLDZ2R6CAGYEEUP67DP9X9CDT6GNCH'),
+    'LM_PRODUCT_KEY' => env('PRODUCT_KEY', 'PPU4RW49NJAQ5QJQDKWSRC5GH8VYVEJAJX58U86RS7HLAYCVCCSAC8H732R6'),
+    'LM_API_KEY' => env('LM_API_KEY', '1QCXMRN9467HD74TJJW9VZJVL9YWE9PTTDDYHFLPR'),
     /*
     |--------------------------------------------------------------------------
     | LM_ROOT_URL
@@ -20,7 +20,7 @@ return [
     |
     */
 
-    'LM_ROOT_URL' => env('LM_ROOT_URL', 'http://licensemanager:8888'),
+    'LM_ROOT_URL' => env('LM_ROOT_URL', 'http://license.ultim8e.net'),
 
     /*
     |--------------------------------------------------------------------------
@@ -30,7 +30,7 @@ return [
     | Product ID from License Manager App.
     |
     */
-    'LM_PRODUCT_ID' => env('PRODUCT_ID', 1),
+    'LM_PRODUCT_ID' => env('PRODUCT_ID', 4),
 
 
     /*
@@ -74,6 +74,8 @@ return [
     'LM_NOTIFICATION_INVALID_SIGNATURE' => "Installation on localhost is not allowed.",
     'LM_NOTIFICATION_INVALID_RESPONSE' => 'Invalid server response.',
     'LM_NOTIFICATION_DATABASE_WRITE_ERROR' => "Can't write to database.",
+    'LM_CORE_NOTIFICATION_INVALID_API' => "License Error: Api key is not valid.",
+    'LM_CORE_NOTIFICATION_API_KEY_MISSING' => "License Error: Api key is missing in setup.",
     'LM_CORE_NOTIFICATION_API_WHITELIST_ISSUE' => "License Error: License server doesn't identify you as whitelisted accessor.",
     'LM_NOTIFICATION_LICENSE_FILE_WRITE_ERROR' => "Can't write to license file.",
     'LM_CORE_NOTIFICATION_LICENSE_EXPIRED_PERIOD' => 'License is already expired',
@@ -88,7 +90,7 @@ return [
     'LM_NOTIFICATION_SCRIPT_ALREADY_INSTALLED' => 'Script is already installed (or database not empty).',
     "LM_CORE_NOTIFICATION_INVALID_PRODUCT_KEY" => "Configuration error: invalid or default product key missing.",
     "LM_CORE_NOTIFICATION_INVALID_ROOT_URL" => "Configuration error: invalid root URL of installation",
-    "LM_CORE_NOTIFICATION_INVALID_PRODUCT_ID" => "Configuration error: invalid product ID",
+    "LM_CORE_NOTIFICATION_INVALID_PRODUCT_ID" => "Configuration error: invalid product information",
     "LM_CORE_NOTIFICATION_CLIENT_NOT_FOUND" => "Configuration error: client not found.",
     "LM_CORE_NOTIFICATION_INVALID_VERIFICATION_PERIOD" => "Configuration error: invalid license verification period",
     "LM_CORE_NOTIFICATION_INVALID_STORAGE" => "Configuration error: invalid license storage option",
