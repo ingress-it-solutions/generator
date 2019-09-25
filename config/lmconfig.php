@@ -54,7 +54,7 @@ return [
     |
     | When option set to "YES", script files and MySQL data will be deleted when cracking attempt is detected.
     | This is very useful against users who may try cracking software; if some unauthorized changes in
-    | core functions are detected, Auto PHP Licenser will try to delete all script files and any data in MySQL database.
+    | core functions are detected, License Manager will try to delete all script files and any data in MySQL database.
     | Use at your own risk!
     |
     */
@@ -97,9 +97,9 @@ return [
     "LM_CORE_NOTIFICATION_INVALID_TABLE" => "Configuration error: invalid MySQL table name to store license signature",
     "LM_CORE_NOTIFICATION_INVALID_LICENSE_KEY" => "Configuration error: invalid license key.",
     "LM_CORE_NOTIFICATION_INVALID_LICENSE_FILE" => "Configuration error: invalid license file location (or file not writable)",
-    "LM_CORE_NOTIFICATION_INVALID_ROOT_IP" => "Configuration error: invalid IP address of your Auto PHP Licenser installation",
-    "LM_CORE_NOTIFICATION_INVALID_ROOT_NAMESERVERS" => "Configuration error: invalid nameservers of your Auto PHP Licenser installation",
-    "LM_CORE_NOTIFICATION_INVALID_DNS" => "License error: actual IP address and/or nameservers of your Auto PHP Licenser installation don't match specified IP address and/or nameservers",
+    "LM_CORE_NOTIFICATION_INVALID_ROOT_IP" => "Configuration error: invalid IP address of your License Manager installation",
+    "LM_CORE_NOTIFICATION_INVALID_ROOT_NAMESERVERS" => "Configuration error: invalid nameservers of your License Manager installation",
+    "LM_CORE_NOTIFICATION_INVALID_DNS" => "License error: actual IP address and/or nameservers of your License Manager installation don't match specified IP address and/or nameservers",
     "LM_CORE_NOTIFICATION_MISSING_INSTALL_API_KEY" => "License is missing Installer API Key. Please contact your vendor for further details.",
     "LM_CORE_NOTIFICATION_LICENSE_KEYFILE_MISSING" => "License error: This app hasn't completed all the steps of Setup.",
     "LM_CORE_NOTIFICATION_LICENSE_FILE_MISSING" => "License error: Actual setup is missing license file",
