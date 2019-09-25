@@ -48,7 +48,7 @@ class LicMan
         $file_headers = @get_headers($file);
 
         if($file_headers === false || $file_headers[0] === null ){
-            $notifications_array[]=config('lmconfig.LM_CORE_NOTIFICATION_INVALID_ROOT_URL');
+            $notifications_array[]=config('lmconfig.LM_NOTIFICATION_NO_CONNECTION');
         }
         if (!$this->validateNumberOrRange(config('lmconfig.LM_DAYS'), 1, 365)) //invalid verification period
         {
