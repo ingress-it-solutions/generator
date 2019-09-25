@@ -467,7 +467,7 @@ class LicMan
 
                 //$parsedData  = Generator::parse($licFile, config('lmconfig.LM_PRODUCT_KEY'));
 
-                $post_info="product_id=".rawurlencode(config('lmconfig.LM_PRODUCT_ID'))."&client_email=".rawurlencode($CLIENT_EMAIL)."&license_code=".rawurlencode($LICENSE_CODE)."&root_url=".rawurlencode($ROOT_URL)."&installation_hash=".rawurlencode($INSTALLATION_HASH)."&license_signature=".rawurlencode($this->generateScriptSignature($ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE));
+                $post_info="product_id=".rawurlencode(config('lmconfig.LM_PRODUCT_ID'))."&client_email=".rawurlencode($CLIENT_EMAIL)."&product_key=".rawurlencode(config('lmconfig.LM_PRODUCT_KEY'))."&license_code=".rawurlencode($LICENSE_CODE)."&root_url=".rawurlencode($ROOT_URL)."&installation_hash=".rawurlencode($INSTALLATION_HASH)."&license_signature=".rawurlencode($this->generateScriptSignature($ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE));
 //dd(rawurlencode($this->generateScriptSignature($ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE)));
                 $content_array=$this->customPost(config('lmconfig.LM_ROOT_URL')."/api/license/install", $post_info, $ROOT_URL);
 
@@ -494,7 +494,7 @@ class LicMan
 
 
 
-                    $post_info="product_id=".rawurlencode(config('lmconfig.LM_PRODUCT_ID')) ."&siteId=" . rawurlencode($arrayData->returnVariables->siteId) ."&client_email=".rawurlencode($CLIENT_EMAIL)."&license_code=".rawurlencode($LICENSE_CODE)."&root_url=".rawurlencode($ROOT_URL)."&installation_hash=".rawurlencode($INSTALLATION_HASH)."&license_signature=".rawurlencode($this->generateScriptSignature($ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE));
+                    $post_info="product_id=".rawurlencode(config('lmconfig.LM_PRODUCT_ID')) ."&siteId=" . rawurlencode($arrayData->returnVariables->siteId) ."&product_key=".rawurlencode(config('lmconfig.LM_PRODUCT_KEY'))."&client_email=".rawurlencode($CLIENT_EMAIL)."&license_code=".rawurlencode($LICENSE_CODE)."&root_url=".rawurlencode($ROOT_URL)."&installation_hash=".rawurlencode($INSTALLATION_HASH)."&license_signature=".rawurlencode($this->generateScriptSignature($ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE));
 
                     $pubKey = $this->getMyKey(config('lmconfig.LM_ROOT_URL')."/api/license/key", $post_info, $ROOT_URL);
 
@@ -594,7 +594,7 @@ class LicMan
                         if (!empty($data['rootUrl']) && !empty($data['clientEmail']) && !empty($data['licenseKey'])) {
                             $INSTALLATION_HASH = hash("sha256", $rootUrl.$data['clientEmail'].$data['licenseKey']); //generate hash
 
-                            $post_info = "product_id=" . rawurlencode(config('lmconfig.LM_PRODUCT_ID')) ."&siteId=" . rawurlencode($data['siteId']) .  "&client_email=" . rawurlencode($data['clientEmail']) . "&license_code=" . rawurlencode($data['licenseKey']) . "&root_url=" . rawurlencode($rootUrl) . "&installation_hash=" . rawurlencode($INSTALLATION_HASH) . "&license_signature=" . rawurlencode($this->generateScriptSignature($rootUrl, $data['clientEmail'], $data['licenseKey']));
+                            $post_info = "product_id=" . rawurlencode(config('lmconfig.LM_PRODUCT_ID')) ."&product_key=".rawurlencode(config('lmconfig.LM_PRODUCT_KEY'))."&siteId=" . rawurlencode($data['siteId']) .  "&client_email=" . rawurlencode($data['clientEmail']) . "&license_code=" . rawurlencode($data['licenseKey']) . "&root_url=" . rawurlencode($rootUrl) . "&installation_hash=" . rawurlencode($INSTALLATION_HASH) . "&license_signature=" . rawurlencode($this->generateScriptSignature($rootUrl, $data['clientEmail'], $data['licenseKey']));
                             $pubKey = $this->getMyKey(config('lmconfig.LM_ROOT_URL') . "/api/license/key", $post_info, $rootUrl);
                             //dd($pubKey);
                             if($pubKey['body'] === 'Your IP Address is not whitelisted.' || $pubKey['body'] === 'Invalid API key' || $pubKey['body'] === 'No valid API key'){
@@ -890,7 +890,7 @@ class LicMan
 
 
                     $INSTALLATION_HASH = hash("sha256", $rootUrl.$data['clientEmail'].$data['licenseKey']); //generate hash
-                    $post_info = "product_id=" . rawurlencode(config('lmconfig.LM_PRODUCT_ID')) . "&siteId=" . rawurlencode($data['siteId']) . "&client_email=" . rawurlencode($data['clientEmail']) . "&license_code=" . rawurlencode($data['licenseKey']) . "&root_url=" . rawurlencode($rootUrl) . "&installation_hash=" . rawurlencode($INSTALLATION_HASH) . "&license_signature=" . rawurlencode($this->generateScriptSignature($rootUrl, $data['clientEmail'], $data['licenseKey']));
+                    $post_info = "product_id=" . rawurlencode(config('lmconfig.LM_PRODUCT_ID')) ."&product_key=".rawurlencode(config('lmconfig.LM_PRODUCT_KEY')). "&siteId=" . rawurlencode($data['siteId']) . "&client_email=" . rawurlencode($data['clientEmail']) . "&license_code=" . rawurlencode($data['licenseKey']) . "&root_url=" . rawurlencode($rootUrl) . "&installation_hash=" . rawurlencode($INSTALLATION_HASH) . "&license_signature=" . rawurlencode($this->generateScriptSignature($rootUrl, $data['clientEmail'], $data['licenseKey']));
                     $pubKey = $this->getMyKey(config('lmconfig.LM_ROOT_URL') . "/api/license/uninstall", $post_info, $rootUrl);
 
                     if($pubKey['body'] === 'Your IP Address is not whitelisted.' || $pubKey['body'] === 'Invalid API key' || $pubKey['body'] === 'No valid API key'){
@@ -1033,7 +1033,7 @@ class LicMan
 
 
                         $INSTALLATION_HASH = hash("sha256", $rootUrl . $data['clientEmail'] . $data['licenseKey']); //generate hash
-                        $post_info = "product_id=" . rawurlencode(config('lmconfig.LM_PRODUCT_ID')) . "&siteId=" . rawurlencode($data['siteId']) . "&client_email=" . rawurlencode($data['clientEmail']) . "&license_code=" . rawurlencode($data['licenseKey']) . "&root_url=" . rawurlencode($rootUrl) . "&installation_hash=" . rawurlencode($INSTALLATION_HASH) . "&license_signature=" . rawurlencode($this->generateScriptSignature($rootUrl, $data['clientEmail'], $data['licenseKey']));
+                        $post_info = "product_id=" . rawurlencode(config('lmconfig.LM_PRODUCT_ID')) . "&product_key=".rawurlencode(config('lmconfig.LM_PRODUCT_KEY'))."&siteId=" . rawurlencode($data['siteId']) . "&client_email=" . rawurlencode($data['clientEmail']) . "&license_code=" . rawurlencode($data['licenseKey']) . "&root_url=" . rawurlencode($rootUrl) . "&installation_hash=" . rawurlencode($INSTALLATION_HASH) . "&license_signature=" . rawurlencode($this->generateScriptSignature($rootUrl, $data['clientEmail'], $data['licenseKey']));
                         $pubKey = $this->getMyKey(config('lmconfig.LM_ROOT_URL') . "/api/license/update", $post_info, $rootUrl);
 
                         if ($pubKey['body'] === 'Your IP Address is not whitelisted.' || $pubKey['body'] === 'Invalid API key' || $pubKey['body'] === 'No valid API key') {
@@ -1178,7 +1178,7 @@ class LicMan
 
 
                     $INSTALLATION_HASH = hash("sha256", $rootUrl . $data['clientEmail'] . $data['licenseKey']); //generate hash
-                    $post_info = "product_id=" . rawurlencode(config('lmconfig.LM_PRODUCT_ID')) . "&siteId=" . rawurlencode($data['siteId']) . "&client_email=" . rawurlencode($data['clientEmail']) . "&license_code=" . rawurlencode($data['licenseKey']) . "&root_url=" . rawurlencode($rootUrl) . "&installation_hash=" . rawurlencode($INSTALLATION_HASH) . "&license_signature=" . rawurlencode($this->generateScriptSignature($rootUrl, $data['clientEmail'], $data['licenseKey']));
+                    $post_info = "product_id=" . rawurlencode(config('lmconfig.LM_PRODUCT_ID')) . "&product_key=".rawurlencode(config('lmconfig.LM_PRODUCT_KEY'))."&siteId=" . rawurlencode($data['siteId']) . "&client_email=" . rawurlencode($data['clientEmail']) . "&license_code=" . rawurlencode($data['licenseKey']) . "&root_url=" . rawurlencode($rootUrl) . "&installation_hash=" . rawurlencode($INSTALLATION_HASH) . "&license_signature=" . rawurlencode($this->generateScriptSignature($rootUrl, $data['clientEmail'], $data['licenseKey']));
 
                     $pubKey = $this->getMyKey(config('lmconfig.LM_ROOT_URL') . "/api/check/license/update", $post_info, $rootUrl);
 
@@ -1317,7 +1317,7 @@ class LicMan
 
 
                     $INSTALLATION_HASH = hash("sha256", $rootUrl . $data['clientEmail'] . $data['licenseKey']); //generate hash
-                    $post_info = "product_id=" . rawurlencode(config('lmconfig.LM_PRODUCT_ID')) . "&siteId=" . rawurlencode($data['siteId']) . "&client_email=" . rawurlencode($data['clientEmail']) . "&license_code=" . rawurlencode($data['licenseKey']) . "&root_url=" . rawurlencode($rootUrl) . "&installation_hash=" . rawurlencode($INSTALLATION_HASH) . "&license_signature=" . rawurlencode($this->generateScriptSignature($rootUrl, $data['clientEmail'], $data['licenseKey']));
+                    $post_info = "product_id=" . rawurlencode(config('lmconfig.LM_PRODUCT_ID')) . "&product_key=".rawurlencode(config('lmconfig.LM_PRODUCT_KEY'))."&siteId=" . rawurlencode($data['siteId']) . "&client_email=" . rawurlencode($data['clientEmail']) . "&license_code=" . rawurlencode($data['licenseKey']) . "&root_url=" . rawurlencode($rootUrl) . "&installation_hash=" . rawurlencode($INSTALLATION_HASH) . "&license_signature=" . rawurlencode($this->generateScriptSignature($rootUrl, $data['clientEmail'], $data['licenseKey']));
 
                     $pubKey = $this->getMyKey(config('lmconfig.LM_ROOT_URL') . "/api/check/license/support", $post_info, $rootUrl);
 
