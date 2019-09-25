@@ -465,9 +465,9 @@ class LicMan
                 //$parsedData  = Generator::parse($licFile, config('lmconfig.LM_PRODUCT_KEY'));
 
                 $post_info="product_id=".rawurlencode(config('lmconfig.LM_PRODUCT_ID'))."&client_email=".rawurlencode($CLIENT_EMAIL)."&license_code=".rawurlencode($LICENSE_CODE)."&root_url=".rawurlencode($ROOT_URL)."&installation_hash=".rawurlencode($INSTALLATION_HASH)."&license_signature=".rawurlencode($this->generateScriptSignature($ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE));
-
+//dd(rawurlencode($this->generateScriptSignature($ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE)));
                 $content_array=$this->customPost(config('lmconfig.LM_ROOT_URL')."/api/license/install", $post_info, $ROOT_URL);
-                //dd($content_array['body']);
+                dd($content_array);
                 $arrayData = json_decode($content_array['body']);
 
                 if($content_array['body'] === 'Your IP Address is not whitelisted.' || $content_array['body'] === 'Invalid API key' || $content_array['body'] === 'No valid API key'){
