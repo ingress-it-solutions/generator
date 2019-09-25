@@ -60,7 +60,7 @@ class LicMan
     public function generateScriptSignature($ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE)
     {
         $script_signature=null;
-        $root_ips_array=gethostbynamel($this->getRawDomain(config('lmconfig.LM_ROOT_URL')));
+        $root_ips_array=gethostbynamel($this->getRawDomain($ROOT_URL));
 
         if (!empty($ROOT_URL) && isset($CLIENT_EMAIL) && isset($LICENSE_CODE) && !empty($root_ips_array))
         {
@@ -192,7 +192,7 @@ class LicMan
     //verify signature received from Auto PHP Licenser server
     public function verifyServerSignature($notification_server_signature, $ROOT_URL, $CLIENT_EMAIL, $LICENSE_CODE) {
         $result=false;
-        $root_ips_array=gethostbynamel($this->getRawDomain(config('lmconfig.LM_ROOT_URL')));
+        $root_ips_array=gethostbynamel($this->getRawDomain($ROOT_URL));
 
         if (!empty($notification_server_signature) && !empty($ROOT_URL) && isset($CLIENT_EMAIL) && isset($LICENSE_CODE) && !empty($root_ips_array))
         {
