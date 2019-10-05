@@ -605,7 +605,7 @@ class LicMan
                             $INSTALLATION_HASH = hash("sha256", $rootUrl.$data['clientEmail'].$data['licenseKey']); //generate hash
 
                             $post_info = "product_id=" . rawurlencode(config('lmconfig.LM_PRODUCT_ID')) ."&siteId=" . rawurlencode($data['siteId']) . "&product_key=".rawurlencode(config('lmconfig.LM_PRODUCT_KEY')). "&client_email=" . rawurlencode($data['clientEmail']) . "&license_code=" . rawurlencode($data['licenseKey']) . "&root_url=" . rawurlencode($rootUrl) . "&installation_hash=" . rawurlencode($INSTALLATION_HASH) . "&license_signature=" . rawurlencode($this->generateScriptSignature($rootUrl, $data['clientEmail'], $data['licenseKey']));
-                            $pubKey = $this->getMyKey(config('lmconfig.LM_ROOT_URL') . "/api/license/key", $post_info, $rootUrl);
+                            $pubKey = $this->getMyKey(config('lmconfig.LM_ROOT_URL') . "/api/license/verify", $post_info, $rootUrl);
                             //dd($pubKey);
                             if($pubKey['body'] === 'Your IP Address is not whitelisted.' || $pubKey['body'] === 'Invalid API key' || $pubKey['body'] === 'No valid API key'){
 
