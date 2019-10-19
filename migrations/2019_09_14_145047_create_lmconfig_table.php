@@ -22,7 +22,11 @@ class CreateLmconfigTable extends Migration
             $table->text('LRD')->nullable();
             $table->text('installationKey')->nullable();
             $table->text('installationHash')->nullable();
+            $table->boolean('isExpired')->nullable();
+            $table->boolean('status')->nullable();
+            $table->dateTime('statusChangeOn')->nullable();
             $table->dateTime('lastCheckedOn')->nullable();
+            $table->dateTime('updateTill')->nullable();
             $table->dateTime('expireOn')->nullable();
             $table->dateTime('supportTill')->nullable();
             $table->dateTime('FailedAttempts')->default(0);
