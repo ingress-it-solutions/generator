@@ -1729,7 +1729,7 @@ class LicMan
 
         if (!empty($datetime) && !empty($format))
         {
-            $datetime=DateTime::createFromFormat($format, $datetime);
+            $datetime=Carbon::createFromFormat($format, $datetime);
             $errors=DateTime::getLastErrors();
 
             if ($datetime && empty($errors['warning_count'])) //datetime OK
