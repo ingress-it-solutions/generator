@@ -401,16 +401,10 @@ class LicMan
             {
                 $LCD = $data['lastCheckedDate']; //decrypt $LCD value for easier data check
 
-
-                Log::info($LCD);
-
                 $verify = $output;
 
-                Log::info($output);
                 if ($data['rootUrl'] != env('APP_URL') . '/') //invalid script url
                 {
-                    Log::info($data['rootUrl']);
-                    Log::info(env('APP_URL'). '/');
                     $error_detected = 1;
                 }
 
