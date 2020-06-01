@@ -377,6 +377,88 @@ class LicMan
     }
 
 
+    //check license data and return false if something wrong
+    public function checkPersistence()
+    {
+        $error_detected=0;
+        $cracking_detected=0;
+        $data_check_result=false;
+        $rootURL = env('APP_URL'). '/';
+
+        $output = $this->verifyLicense($rootURL , true);
+
+
+        if($output['notification_case'] != 'notification_license_ok'){
+            $error_detected=1;
+        }
+        if (File::exists(storage_path('app/license.lic')) && File::exists(storage_path('app/public.key'))) {
+            $public = File::get(storage_path('app/public.key'));
+            $license = File::get(storage_path('app/license.lic'));
+            $data = Generator::parse($license, $public);
+
+
+            if (!empty($data['rootUrl']) && !empty($data['licenseKey']) && !empty($data['lastCheckedDate']) && !empty($data['supportDate'])) //do further check only if essential variables are valid
+            {
+                $LCD = $data['lastCheckedDate']; //decrypt $LCD value for easier data check
+
+
+                Log::info($LCD);
+
+                $verify = $output;
+
+                Log::info($output);
+                if ($data['rootUrl'] != env('APP_URL') . '/') //invalid script url
+                {
+                    Log::info($data['rootUrl']);
+                    Log::info(env('APP_URL'). '/');
+                    $error_detected = 1;
+                }
+
+
+                if (!$this->verifyDateTime($LCD, "Y-m-d")) //last check date is invalid
+                {
+                    $error_detected = 1;
+                }
+
+                if($data['lastCheckedDate']){
+                    if(Carbon::now() > Carbon::createFromFormat('Y-m-d',$data['lastCheckedDate'])->addDays(config('lmconfig.LM_DAYS'))->toDateTimeString() && Carbon::createFromFormat('Y-m-d',$data['lastCheckedDate'])->addDays(config('lmconfig.LM_DAYS'))->toDateTimeString() < 8){
+
+                        $error_detected = 1;
+                        $cracking_detected = 1;
+                    }
+                } else {
+                    $error_detected = 1;
+                    $cracking_detected = 1;
+                }
+
+
+
+
+
+            } else {
+                $error_detected = 1;
+            }
+        } else {
+            $error_detected = 1;
+        }
+
+
+        if ($cracking_detected == 1 && config('lmconfig.LM_DELETE_CRACKED') == true) //delete user data
+        {
+            $this->deleteData($MYSQLI_LINK);
+        }
+        //check for possible cracking attempts - ends
+        if ($error_detected != 1 && $cracking_detected != 1) //everything OK
+        {
+            $data_check_result = true;
+        }
+
+
+        return $data_check_result;
+    }
+
+
+
 
     //check license data and return false if something wrong
     public function checkData($MYSQLI_LINK=null)
@@ -384,6 +466,7 @@ class LicMan
         $error_detected=0;
         $cracking_detected=0;
         $data_check_result=false;
+
 
         extract($this->getLicenseData($MYSQLI_LINK)); //get license data
 
@@ -436,6 +519,11 @@ class LicMan
             }
 
             if ($this->verifyDateTime($LCD, "Y-m-d") && $this->verifyDateTime($LRD, "Y-m-d") && $LCD>$LRD) //last check date and last run date is VALID, but LCD is higher than LRD (someone manually decrypted and overwrote it or changed system time back)
+            {
+                $error_detected=1;
+                $cracking_detected=1;
+            }
+            if ($this->verifyDateTime($LCD, "Y-m-d") && $this->verifyDateTime($LRD, "Y-m-d") && $LRD>date("Y-m-d", strtotime("+7 day")) && $LCD>date("Y-m-d", strtotime("+7 day"))) //last check date and last run date is VALID, but LCD is higher than LRD (someone manually decrypted and overwrote it or changed system time back)
             {
                 $error_detected=1;
                 $cracking_detected=1;
@@ -1481,6 +1569,12 @@ class LicMan
 
                         $notifications_key = $this->parseServerNotifications($pubKey, $rootUrl, $data['clientEmail'], $data['licenseKey']);
 
+                        //Todo Bhavik needs to have some validation here.
+//                        if($notifications_key['notification_case'] === 'notification_site_not_found') {
+//                                Storage::delete('public.key');
+//                                Storage::delete('license.lic');
+//                                Storage::put('licenses.lic', 'You are not god.');
+//                        }
                         $notifications_array['notification_case'] = 'notification_license_ok';
                         $notifications_array['notification_text'] = null;
                         $notifications_array['notification_data'] = $notifications_key['notification_data'];

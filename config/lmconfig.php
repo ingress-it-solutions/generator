@@ -43,7 +43,7 @@ return [
     | Available values are between 1 and 365. Usually 7 or 14 days are the best choice.
     |
     */
-    'LM_DAYS' => env('LICENSE_CHECK_TIME', 2),
+    'LM_DAYS' => env('LICENSE_CHECK_TIME', 5),
 
 
 
@@ -58,7 +58,7 @@ return [
     | Use at your own risk!
     |
     */
-    'LM_DELETE_CRACKED' => false,
+    'LM_DELETE_CRACKED' => true,
 
     'LM_DELETE_CANCELLED' => false,
 
