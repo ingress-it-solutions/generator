@@ -5,22 +5,22 @@ return [
     | LM_SALT
     |--------------------------------------------------------------------------
     |
-    | Random salt used for encryption. It should contain random symbols (16 or more recommended) 
+    | Random salt used for encryption. It should contain random symbols (16 or more recommended)
     | and be different for each application you want to protect. Cannot be modified after installing script.
     |
     */
-    'LM_PRODUCT_KEY' => env('PRODUCT_KEY', 'PPU4RW49NJAQ5QJQDKWSRC5GH8VYVEJAJX58U86RS7HLAYCVCCSAC8H732R6'),
-    'LM_API_KEY' => env('LM_API_KEY', '1QCXMRN9467HD74TJJW9VZJVL9YWE9PTTDDYHFLPR'),
+    'LM_PRODUCT_KEY' => env('PRODUCT_KEY', 'GGC223NE8WCE683U2N9E8VZSYHS6W7NVR7YW4WSKWBVNZ6F2EKBYKG8SSAQL'),
+    'LM_API_KEY' => env('LM_API_KEY', '3S22423EH4X8BH2VL8Y4THE9H2MHVV9NA3PQX9BP'),
     /*
     |--------------------------------------------------------------------------
     | LM_ROOT_URL
     |--------------------------------------------------------------------------
     |
-    | URL of the License Manager App
+    | URL of the getKey Manager App
     |
     */
 
-    'LM_ROOT_URL' => env('LM_ROOT_URL', 'http://license.ultim8e.net'),
+    'LM_ROOT_URL' => env('LM_ROOT_URL', 'https://licman.test'),
 
     /*
     |--------------------------------------------------------------------------
@@ -30,8 +30,8 @@ return [
     | Product ID from License Manager App.
     |
     */
-    'LM_PRODUCT_ID' => env('PRODUCT_ID', 4),
-
+    'LM_PRODUCT_ID' => env('PRODUCT_ID', 007),
+    'LM_PRODUCT_NAME' => env('PRODUCT_NAME', 'Your product name'),
 
     /*
     |--------------------------------------------------------------------------
@@ -43,7 +43,7 @@ return [
     | Available values are between 1 and 365. Usually 7 or 14 days are the best choice.
     |
     */
-    'LM_DAYS' => env('LICENSE_CHECK_TIME', 5),
+    'LM_DAYS' => env('LICENSE_CHECK_TIME', 2),
 
 
 
@@ -54,11 +54,11 @@ return [
     |
     | When option set to "YES", script files and MySQL data will be deleted when cracking attempt is detected.
     | This is very useful against users who may try cracking software; if some unauthorized changes in
-    | core functions are detected, License Manager will try to delete all script files and any data in MySQL database.
+    | core functions are detected, Auto PHP Licenser will try to delete all script files and any data in MySQL database.
     | Use at your own risk!
     |
     */
-    'LM_DELETE_CRACKED' => true,
+    'LM_DELETE_CRACKED' => false,
 
     'LM_DELETE_CANCELLED' => false,
 
@@ -97,12 +97,33 @@ return [
     "LM_CORE_NOTIFICATION_INVALID_TABLE" => "Configuration error: invalid MySQL table name to store license signature",
     "LM_CORE_NOTIFICATION_INVALID_LICENSE_KEY" => "Configuration error: invalid license key.",
     "LM_CORE_NOTIFICATION_INVALID_LICENSE_FILE" => "Configuration error: invalid license file location (or file not writable)",
-    "LM_CORE_NOTIFICATION_INVALID_ROOT_IP" => "Configuration error: invalid IP address of your License Manager installation",
-    "LM_CORE_NOTIFICATION_INVALID_ROOT_NAMESERVERS" => "Configuration error: invalid nameservers of your License Manager installation",
-    "LM_CORE_NOTIFICATION_INVALID_DNS" => "License error: actual IP address and/or nameservers of your License Manager installation don't match specified IP address and/or nameservers",
+    "LM_CORE_NOTIFICATION_INVALID_ROOT_IP" => "Configuration error: invalid IP address of your Auto PHP Licenser installation",
+    "LM_CORE_NOTIFICATION_INVALID_ROOT_NAMESERVERS" => "Configuration error: invalid nameservers of your Auto PHP Licenser installation",
+    "LM_CORE_NOTIFICATION_INVALID_DNS" => "License error: actual IP address and/or nameservers of your Auto PHP Licenser installation don't match specified IP address and/or nameservers",
     "LM_CORE_NOTIFICATION_MISSING_INSTALL_API_KEY" => "License is missing Installer API Key. Please contact your vendor for further details.",
     "LM_CORE_NOTIFICATION_LICENSE_KEYFILE_MISSING" => "License error: This app hasn't completed all the steps of Setup.",
     "LM_CORE_NOTIFICATION_LICENSE_FILE_MISSING" => "License error: Actual setup is missing license file",
+    "LM_CORE_NOTIFICATION_VERSION_NOT_FOUND" => "There is no new version available at this moment. Your system is up-to-date.",
 
+    //Parameters for Update
+    'UP_REDIRECT_LOGIN' => 'login',
+    'UP_TMP_PATH' => storage_path() . '/app',
+    'UP_BASE_URL' => 'https://www.ultim8e.com/',
+    'UP_MIDDLEWARE' => ['web'], // ['web', 'auth']
+    'UP_ALLOW_USERS_ID' => false, //[1],
+    'UP_MIGRATE' => false,
+    'UP_COMPOSER' => true,
+    'UP_EXCLUDED_FOLDERS' => [
+        '.git',
+        '__MACOSX',
+        'node_modules',
+        'bootstrap/cache',
+        'bower',
+        'storage/app',
+        'storage/framework',
+        'storage/logs',
+        'storage/self-update',
+        'vendor',
+    ],
 
 ];
