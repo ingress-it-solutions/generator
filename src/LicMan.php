@@ -1227,7 +1227,7 @@ class LicMan
             if(File::exists(storage_path('app/license.lic')) && File::exists(storage_path('app/public.key'))){
                 $data = Generator::parse($license, $public);
             }
-            //dd($data);
+
             if (!empty($data)) {
 
                 if ($data['expiryDate'] < Carbon::now()) {
@@ -1264,12 +1264,45 @@ class LicMan
 
                 if($data['updateDate'] || !empty($data['updateDate'])){
 
-                    if ($data['updateDate'] > Carbon::now()->format('Y-m-d')) {
+                    if ($data['updateDate'] <= Carbon::now()->format('Y-m-d')) {
                         // license cancelled / suspended.LM_CORE_NOTIFICATION_LICENSE_SUSPENDED
                         $notifications_array['notification_case'] = "notification_license_update_expired";
                         $notifications_array['notification_text'] = config('lmconfig.LM_CORE_NOTIFICATION_LICENSE_UPDATE_EXPIRED');
 
                     }
+
+                    if(!array_key_exists('notification_case', $notifications_array)){
+
+                    $notifications_array['notification_case']="notification_license_ok";
+                    $notifications_array['notification_text']=null;
+
+
+
+
+
+                    $INSTALLATION_HASH = hash("sha256", $rootUrl . $data['clientEmail'] . $data['licenseKey']); //generate hash
+                    $post_info = "product_id=" . rawurlencode(config('lmconfig.LM_PRODUCT_ID')) . "&siteId=" . rawurlencode($data['siteId']) . "&product_key=".rawurlencode(config('lmconfig.LM_PRODUCT_KEY'))."&client_email=" . rawurlencode($data['clientEmail']) . "&license_code=" . rawurlencode($data['licenseKey']) . "&root_url=" . rawurlencode($rootUrl) . "&installation_hash=" . rawurlencode($INSTALLATION_HASH) . "&license_signature=" . rawurlencode($this->generateScriptSignature($rootUrl, $data['clientEmail'], $data['licenseKey']));
+
+                    $pubKey = $this->getMyKey(config('lmconfig.LM_ROOT_URL') . "/api/check/license/update", $post_info, $rootUrl);
+                    // dd($pubKey);
+
+                    if ($pubKey['body'] === 'Your IP Address is not whitelisted.' || $pubKey['body'] === 'Invalid API key' || $pubKey['body'] === 'No valid API key') {
+
+                        $notifications_array['notification_case'] = "notification_api_not_whitelist";
+                        $notifications_array['notification_text'] = config('lmconfig.LM_CORE_NOTIFICATION_API_WHITELIST_ISSUE');
+                    } else {
+
+                        $notifications_key = $this->parseServerNotifications($pubKey, $rootUrl, $data['clientEmail'], $data['licenseKey']);
+
+                        $notifications_array['notification_case'] = 'notification_license_ok';
+                        $notifications_array['notification_text'] = null;
+                        $notifications_array['notification_data'] = $notifications_key['notification_data'];
+                    }
+
+
+                }
+
+
                 } else {
                     $notifications_array['notification_case'] = "notification_license_no_update";
                     $notifications_array['notification_text'] = config('lmconfig.LM_CORE_NOTIFICATION_LICENSE_NO_UPDATE');
@@ -1291,35 +1324,7 @@ class LicMan
 
 
 
-                if(!array_key_exists('notification_case', $notifications_array)){
 
-                    $notifications_array['notification_case']="notification_license_ok";
-                    $notifications_array['notification_text']=null;
-
-
-
-
-
-                    $INSTALLATION_HASH = hash("sha256", $rootUrl . $data['clientEmail'] . $data['licenseKey']); //generate hash
-                    $post_info = "product_id=" . rawurlencode(config('lmconfig.LM_PRODUCT_ID')) . "&siteId=" . rawurlencode($data['siteId']) . "&product_key=".rawurlencode(config('lmconfig.LM_PRODUCT_KEY'))."&client_email=" . rawurlencode($data['clientEmail']) . "&license_code=" . rawurlencode($data['licenseKey']) . "&root_url=" . rawurlencode($rootUrl) . "&installation_hash=" . rawurlencode($INSTALLATION_HASH) . "&license_signature=" . rawurlencode($this->generateScriptSignature($rootUrl, $data['clientEmail'], $data['licenseKey']));
-
-                    $pubKey = $this->getMyKey(config('lmconfig.LM_ROOT_URL') . "/api/check/license/update", $post_info, $rootUrl);
-
-                    if ($pubKey['body'] === 'Your IP Address is not whitelisted.' || $pubKey['body'] === 'Invalid API key' || $pubKey['body'] === 'No valid API key') {
-
-                        $notifications_array['notification_case'] = "notification_api_not_whitelist";
-                        $notifications_array['notification_text'] = config('lmconfig.LM_CORE_NOTIFICATION_API_WHITELIST_ISSUE');
-                    } else {
-
-                        $notifications_key = $this->parseServerNotifications($pubKey, $rootUrl, $data['clientEmail'], $data['licenseKey']);
-
-                        $notifications_array['notification_case'] = 'notification_license_ok';
-                        $notifications_array['notification_text'] = null;
-                        $notifications_array['notification_data'] = $notifications_key['notification_data'];
-                    }
-
-
-                }
 
 
             } else {
@@ -1443,7 +1448,6 @@ class LicMan
                     $post_info = "product_id=" . rawurlencode(config('lmconfig.LM_PRODUCT_ID')) . "&siteId=" . rawurlencode($data['siteId']) . "&product_key=".rawurlencode(config('lmconfig.LM_PRODUCT_KEY'))."&client_email=" . rawurlencode($data['clientEmail']) . "&license_code=" . rawurlencode($data['licenseKey']) . "&root_url=" . rawurlencode($rootUrl) . "&installation_hash=" . rawurlencode($INSTALLATION_HASH) . "&license_signature=" . rawurlencode($this->generateScriptSignature($rootUrl, $data['clientEmail'], $data['licenseKey']));
 
                     $pubKey = $this->getMyKey(config('lmconfig.LM_ROOT_URL') . "/api/check/license/support", $post_info, $rootUrl);
-
                     if ($pubKey['body'] === 'Your IP Address is not whitelisted.' || $pubKey['body'] === 'Invalid API key' || $pubKey['body'] === 'No valid API key') {
 
                         $notifications_array['notification_case'] = "notification_api_not_whitelist";
