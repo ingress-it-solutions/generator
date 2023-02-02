@@ -3,6 +3,7 @@
 namespace IngressITSolutions\Generator\Commands;
 
 use Illuminate\Console\Command;
+use IngressITSolutions\Generator\Commands\LicMan;
 use Carbon\Carbon;
 use Exception;
 
