@@ -4,6 +4,8 @@ namespace IngressITSolutions\Generator\Commands;
 
 use Illuminate\Console\Command;
 use IngressITSolutions\Generator\LicMan;
+use Illuminate\Support\Facades\File;
+use IngressITSolutions\Generator\Generator;
 use Carbon\Carbon;
 use Exception;
 
@@ -47,7 +49,7 @@ class IngressValidate extends Command
                     } else {
                         $this->info('Everything is up-to-date.');
                     }
-                } catch (BaseException $e) {
+                } catch (Exception $e) {
                     $this->error('Looks like something went wrong!');
                     $this->error($e->getMessage());
                 }
