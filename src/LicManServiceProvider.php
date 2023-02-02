@@ -3,7 +3,7 @@
 namespace IngressITSolutions\Generator;
 
 use Illuminate\Support\ServiceProvider;
-
+use IngressITSolutions\Generator\Commands\IngressCheckCommand;
 class LicManServiceProvider extends ServiceProvider
 {
 
@@ -15,6 +15,12 @@ class LicManServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                IngressCheckCommand::class
+            ]);
+        }
+        
         // Config
         $this->publishes([
             __DIR__ . '/../config/lmconfig.php' => config_path('lmconfig.php'),
