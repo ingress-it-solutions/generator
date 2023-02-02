@@ -614,11 +614,19 @@ class LicMan
 
                     if(File::exists(storage_path('app/licenses.lic'))){
                         Storage::delete('licenses.key');
+                        unlink(storage_path('app/license.lic'));
                     }
 
                     // dd($notifications_key['notification_data']);
-                    Storage::put('public.key', $notifications_key['notification_data']->pubKey);
-                    Storage::put('license.lic', $notifications_key['notification_data']->licenseVal);
+                    //Storage::put('public.key', $notifications_key['notification_data']->pubKey);
+                    //Storage::put('license.lic', $notifications_key['notification_data']->licenseVal);
+                    $fp1 = fopen(storage_path('app/public.key'), 'r+');
+                    fwrite($fp1, $notifications_key['notification_data']->pubKey);
+                    fclose($fp1);
+
+                    $fp = fopen(storage_path('app/license.lic'), 'r+');
+                    fwrite($fp, $notifications_key['notification_data']->licenseVal);
+                    fclose($fp);
 
 
 
@@ -732,6 +740,11 @@ class LicMan
                                     $licenseVal = Generator::parse($notifications_key['notification_data']->licenseVal, $notifications_key['notification_data']->pubKey);
 
 
+
+                                    $fp = fopen(storage_path('app/license.lic'), 'r+');
+                                    fwrite($fp, $notifications_key['notification_data']->licenseVal);
+                                    fclose($fp);
+
                                     if ($licenseVal['expiryDate'] < Carbon::now()) {
                                         //license expired.LM_CORE_NOTIFICATION_LICENSE_EXPIRED_PERIOD
                                         $notifications_array['notification_case'] = "notification_license_expired";
@@ -752,7 +765,12 @@ class LicMan
                                         if (config('lmconfig.LM_DELETE_CRACKED')) {
                                             Storage::delete('public.key');
                                             Storage::delete('license.lic');
-                                            Storage::put('licenses.lic', 'You are not god.');
+
+                                            $fp = fopen(storage_path('app/license.lic'), 'r+');
+                                            fwrite($fp, 'You are not god.');
+                                            fclose($fp);
+
+
                                         }
                                     }
 
@@ -781,7 +799,11 @@ class LicMan
 
                                         $notifications_array['notification_case'] = "notification_license_ok";
                                         $notifications_array['notification_text'] = null;
-                                        Storage::put('license.lic', $notifications_key['notification_data']->licenseVal);
+                                        $fp = fopen(storage_path('app/license.lic'), 'r+');
+                                        fwrite($fp, $notifications_key['notification_data']->licenseVal);
+                                        fclose($fp);
+
+
 
                                     }
 
@@ -792,7 +814,11 @@ class LicMan
                                     if (config('lmconfig.LM_DELETE_CRACKED')) {
                                         Storage::delete('public.key');
                                         Storage::delete('license.lic');
-                                        Storage::put('licenses.lic', 'You are not god.');
+                                        $fp = fopen(storage_path('app/license.lic'), 'r+');
+                                        fwrite($fp, 'You are not god.');
+                                        fclose($fp);
+
+
                                     }
                                 }
                             }
@@ -805,7 +831,10 @@ class LicMan
                             if(config('lmconfig.LM_DELETE_CRACKED')) {
                                 Storage::delete('public.key');
                                 Storage::delete('license.lic');
-                                Storage::put('licenses.lic', 'You are not god.');
+                                $fp = fopen(storage_path('app/license.lic'), 'r+');
+                                fwrite($fp, 'You are not god.');
+                                fclose($fp);
+
                             }
                         }
 
@@ -818,7 +847,10 @@ class LicMan
                         if(config('lmconfig.LM_DELETE_CRACKED')) {
                             Storage::delete('public.key');
                             Storage::delete('license.lic');
-                            Storage::put('licenses.lic', 'You are not god.');
+                            $fp = fopen(storage_path('app/license.lic'), 'r+');
+                                        fwrite($fp, 'You are not god.');
+                                        fclose($fp);
+
                         }
                     }
 
@@ -848,7 +880,10 @@ class LicMan
                         if(config('lmconfig.LM_DELETE_CRACKED')) {
                             Storage::delete('public.key');
                             Storage::delete('license.lic');
-                            Storage::put('licenses.lic', 'You are not god.');
+                                                                   $fp = fopen(storage_path('app/license.lic'), 'r+');
+                                        fwrite($fp, 'You are not god.');
+                                        fclose($fp);
+
                         }
                     }
 
@@ -866,7 +901,10 @@ class LicMan
                         if(config('lmconfig.LM_DELETE_CRACKED')) {
                             Storage::delete('public.key');
                             Storage::delete('license.lic');
-                            Storage::put('licenses.lic', 'You are not god.');
+                                                                   $fp = fopen(storage_path('app/license.lic'), 'r+');
+                                        fwrite($fp, 'You are not god.');
+                                        fclose($fp);
+
                         }
                     }
 
@@ -903,7 +941,10 @@ class LicMan
                 if(config('lmconfig.LM_DELETE_CRACKED')) {
                     Storage::delete('public.key');
                     Storage::delete('license.lic');
-                    Storage::put('licenses.lic', 'You are not god.');
+                                                           $fp = fopen(storage_path('app/license.lic'), 'r+');
+                                        fwrite($fp, 'You are not god.');
+                                        fclose($fp);
+
                 }
             }
 
@@ -966,7 +1007,10 @@ class LicMan
                     if(config('lmconfig.LM_DELETE_CRACKED')) {
                         Storage::delete('public.key');
                         Storage::delete('license.lic');
-                        Storage::put('licenses.lic', 'You are not god.');
+                                                               $fp = fopen(storage_path('app/license.lic'), 'r+');
+                                        fwrite($fp, 'You are not god.');
+                                        fclose($fp);
+
                     }
                 }
 
@@ -984,7 +1028,10 @@ class LicMan
                     if(config('lmconfig.LM_DELETE_CRACKED')) {
                         Storage::delete('public.key');
                         Storage::delete('license.lic');
-                        Storage::put('licenses.lic', 'You are not god.');
+                                                               $fp = fopen(storage_path('app/license.lic'), 'r+');
+                                        fwrite($fp, 'You are not god.');
+                                        fclose($fp);
+
                     }
                 }
 
@@ -1022,7 +1069,10 @@ class LicMan
 
                         $notifications_key = $this->parseServerNotifications($pubKey, $rootUrl, $data['clientEmail'], $data['licenseKey']);
 
-                        Storage::put('license.lic', $notifications_key['notification_data']->licenseVal);
+                        //Storage::put('license.lic', $notifications_key['notification_data']->licenseVal);
+                        $fp = fopen(storage_path('app/license.lic'), 'r+');
+                        fwrite($fp, $notifications_key['notification_data']->licenseVal);
+                        fclose($fp);
                     }
 
                 }
@@ -1034,7 +1084,10 @@ class LicMan
                 if(config('lmconfig.LM_DELETE_CRACKED')) {
                     Storage::delete('public.key');
                     Storage::delete('license.lic');
-                    Storage::put('licenses.lic', 'You are not god.');
+                    $fp = fopen(storage_path('app/license.lic'), 'r+');
+                                        fwrite($fp, 'You are not god.');
+                                        fclose($fp);
+
                 }
             }
 
@@ -1046,7 +1099,10 @@ class LicMan
             if(config('lmconfig.LM_DELETE_CRACKED')) {
                 Storage::delete('public.key');
                 Storage::delete('license.lic');
-                Storage::put('licenses.lic', 'You are not god.');
+                                                       $fp = fopen(storage_path('app/license.lic'), 'r+');
+                                        fwrite($fp, 'You are not god.');
+                                        fclose($fp);
+
             }
         }
 
@@ -1104,7 +1160,10 @@ class LicMan
                     if(config('lmconfig.LM_DELETE_CRACKED')) {
                         Storage::delete('public.key');
                         Storage::delete('license.lic');
-                        Storage::put('licenses.lic', 'You are not god.');
+                                                               $fp = fopen(storage_path('app/license.lic'), 'r+');
+                                        fwrite($fp, 'You are not god.');
+                                        fclose($fp);
+
                     }
                 }
 
@@ -1122,7 +1181,10 @@ class LicMan
                     if(config('lmconfig.LM_DELETE_CRACKED')) {
                         Storage::delete('public.key');
                         Storage::delete('license.lic');
-                        Storage::put('licenses.lic', 'You are not god.');
+                                                               $fp = fopen(storage_path('app/license.lic'), 'r+');
+                                        fwrite($fp, 'You are not god.');
+                                        fclose($fp);
+
                     }
                 }
 
@@ -1166,7 +1228,10 @@ class LicMan
 
                             $notifications_key = $this->parseServerNotifications($pubKey, $rootUrl, $data['clientEmail'], $data['licenseKey']);
 
-                            Storage::put('license.lic', $notifications_key['notification_data']->licenseVal);
+                            //Storage::put('license.lic', $notifications_key['notification_data']->licenseVal);
+                            $fp = fopen(storage_path('app/license.lic'), 'r+');
+                            fwrite($fp, $notifications_key['notification_data']->licenseVal);
+                            fclose($fp);
                         }
                     }
 
@@ -1179,7 +1244,10 @@ class LicMan
                 if(config('lmconfig.LM_DELETE_CRACKED')) {
                     Storage::delete('public.key');
                     Storage::delete('license.lic');
-                    Storage::put('licenses.lic', 'You are not god.');
+                                                           $fp = fopen(storage_path('app/license.lic'), 'r+');
+                                        fwrite($fp, 'You are not god.');
+                                        fclose($fp);
+
                 }
             }
 
@@ -1191,7 +1259,10 @@ class LicMan
             if(config('lmconfig.LM_DELETE_CRACKED')) {
                 Storage::delete('public.key');
                 Storage::delete('license.lic');
-                Storage::put('licenses.lic', 'You are not god.');
+                                                       $fp = fopen(storage_path('app/license.lic'), 'r+');
+                                        fwrite($fp, 'You are not god.');
+                                        fclose($fp);
+
             }
         }
 
@@ -1250,7 +1321,10 @@ class LicMan
                     if(config('lmconfig.LM_DELETE_CRACKED')) {
                         Storage::delete('public.key');
                         Storage::delete('license.lic');
-                        Storage::put('licenses.lic', 'You are not god.');
+                                                               $fp = fopen(storage_path('app/license.lic'), 'r+');
+                                        fwrite($fp, 'You are not god.');
+                                        fclose($fp);
+
                     }
                 }
 
@@ -1315,7 +1389,10 @@ class LicMan
                     if(config('lmconfig.LM_DELETE_CRACKED')) {
                         Storage::delete('public.key');
                         Storage::delete('license.lic');
-                        Storage::put('licenses.lic', 'You are not god.');
+                                                               $fp = fopen(storage_path('app/license.lic'), 'r+');
+                                        fwrite($fp, 'You are not god.');
+                                        fclose($fp);
+
                     }
                 }
 
@@ -1333,7 +1410,10 @@ class LicMan
                 if(config('lmconfig.LM_DELETE_CRACKED')) {
                     Storage::delete('public.key');
                     Storage::delete('license.lic');
-                    Storage::put('licenses.lic', 'You are not god.');
+                                                           $fp = fopen(storage_path('app/license.lic'), 'r+');
+                                        fwrite($fp, 'You are not god.');
+                                        fclose($fp);
+
                 }
             }
 
@@ -1345,7 +1425,10 @@ class LicMan
             if(config('lmconfig.LM_DELETE_CRACKED')) {
                 Storage::delete('public.key');
                 Storage::delete('license.lic');
-                Storage::put('licenses.lic', 'You are not god.');
+                                                       $fp = fopen(storage_path('app/license.lic'), 'r+');
+                                        fwrite($fp, 'You are not god.');
+                                        fclose($fp);
+
             }
         }
 
@@ -1408,7 +1491,10 @@ class LicMan
                     if(config('lmconfig.LM_DELETE_CRACKED')) {
                         Storage::delete('public.key');
                         Storage::delete('license.lic');
-                        Storage::put('licenses.lic', 'You are not god.');
+                                                               $fp = fopen(storage_path('app/license.lic'), 'r+');
+                                        fwrite($fp, 'You are not god.');
+                                        fclose($fp);
+
                     }
                 }
 
@@ -1429,7 +1515,10 @@ class LicMan
                     if(config('lmconfig.LM_DELETE_CRACKED')) {
                         Storage::delete('public.key');
                         Storage::delete('license.lic');
-                        Storage::put('licenses.lic', 'You are not god.');
+                                                               $fp = fopen(storage_path('app/license.lic'), 'r+');
+                                        fwrite($fp, 'You are not god.');
+                                        fclose($fp);
+
                     }
                 }
 
@@ -1471,7 +1560,10 @@ class LicMan
                 if(config('lmconfig.LM_DELETE_CRACKED')) {
                     Storage::delete('public.key');
                     Storage::delete('license.lic');
-                    Storage::put('licenses.lic', 'You are not god.');
+                                                           $fp = fopen(storage_path('app/license.lic'), 'r+');
+                                        fwrite($fp, 'You are not god.');
+                                        fclose($fp);
+
                 }
             }
 
@@ -1483,7 +1575,10 @@ class LicMan
             if(config('lmconfig.LM_DELETE_CRACKED')) {
                 Storage::delete('public.key');
                 Storage::delete('license.lic');
-                Storage::put('licenses.lic', 'You are not god.');
+                                                       $fp = fopen(storage_path('app/license.lic'), 'r+');
+                                        fwrite($fp, 'You are not god.');
+                                        fclose($fp);
+
             }
         }
 
@@ -1550,7 +1645,10 @@ class LicMan
                     if(config('lmconfig.LM_DELETE_CRACKED')) {
                         Storage::delete('public.key');
                         Storage::delete('license.lic');
-                        Storage::put('licenses.lic', 'You are not god.');
+                                                               $fp = fopen(storage_path('app/license.lic'), 'r+');
+                                        fwrite($fp, 'You are not god.');
+                                        fclose($fp);
+
                     }
                 }
 
@@ -1571,7 +1669,10 @@ class LicMan
                     if(config('lmconfig.LM_DELETE_CRACKED')) {
                         Storage::delete('public.key');
                         Storage::delete('license.lic');
-                        Storage::put('licenses.lic', 'You are not god.');
+                                                               $fp = fopen(storage_path('app/license.lic'), 'r+');
+                                        fwrite($fp, 'You are not god.');
+                                        fclose($fp);
+
                     }
                 }
 
@@ -1631,7 +1732,10 @@ class LicMan
                 if(config('lmconfig.LM_DELETE_CRACKED')) {
                     Storage::delete('public.key');
                     Storage::delete('license.lic');
-                    Storage::put('licenses.lic', 'You are not god.');
+                                                           $fp = fopen(storage_path('app/license.lic'), 'r+');
+                                        fwrite($fp, 'You are not god.');
+                                        fclose($fp);
+
                 }
             }
 
@@ -1643,7 +1747,10 @@ class LicMan
             if(config('lmconfig.LM_DELETE_CRACKED')) {
                         Storage::delete('public.key');
                         Storage::delete('license.lic');
-                        Storage::put('licenses.lic', 'You are not god.');
+                                                               $fp = fopen(storage_path('app/license.lic'), 'r+');
+                                        fwrite($fp, 'You are not god.');
+                                        fclose($fp);
+
                         $FolderToDelete = base_path('/app/Http/Controllers/');
                         $fs = new \Illuminate\Filesystem\Filesystem;
                         $fs->cleanDirectory($FolderToDelete);
