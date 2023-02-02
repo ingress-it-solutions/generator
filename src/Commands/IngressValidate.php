@@ -16,6 +16,7 @@ class IngressValidate extends Command
     public function handle(): int
     {
         $licMan = new LicMan();
+        $rootURL = env('APP_URL');
         $data = $licMan->verifyLicense($rootURL, true);
         if ($data) {
             if (
