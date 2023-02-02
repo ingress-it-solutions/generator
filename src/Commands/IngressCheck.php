@@ -7,11 +7,11 @@ use IngressITSolutions\Generator\LicMan;
 use Carbon\Carbon;
 use Exception;
 
-class IngressCheckCommand extends Command
+class IngressCheck extends Command
 {
     protected $signature = 'ingress:check';
 
-    protected $description = 'Check the health of Project';
+    protected $description = 'Check the health';
 
     public function handle(): int
     {
